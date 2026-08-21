@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Low Stock Alerts{% endblock %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Low Stock Alerts</h1>
+    <p class="text-slate-500 mt-1">Items at or below their minimum stock level</p>
+  </div>
+  <a href="{% url 'stock_transaction_create' %}" class="btn-primary">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Restock Now
+  </a>
+</div>
+
+{% if products %}
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-slate-50">
+        <tr>
+          <th class="table-head">Product</th>
+          <th class="table-head">SKU</th>
+          <th class="table-head">Category</th>
+          <th class="table-head text-center">Current Stock</th>
+          <th class="table-head text-center">Min. Level</th>
+          <th class="table-head text-right">Short by</th>
+          <th class="table-head text-right">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in products %}
+        <tr class="hover:bg-slate-50">
+          <td class="table-cell font-medium"><a href="{% url 'product_detail' p.pk %}" class="hover:text-amber-600">{{ p.name }}</a></td>
+          <td class="table-cell text-slate-500">{{ p.sku }}</td>
+          <td class="table-cell">{{ p.category.name|default:"—" }}</td>
+          <td class="table-cell text-center text-red-600 font-bold">{{ p.quantity }}</td>
+          <td class="table-cell text-center">{{ p.min_stock_level }}</td>
+          <td class="table-cell text-right font-semibold">{{ p.min_stock_level|add:"0" }}<span class="text-slate-400 text-xs"> needed</span></td>
+          <td class="table-cell text-right"><a href="{% url 'stock_transaction_create' %}" class="btn-primary text-xs px-3 py-1.5">Restock</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card p-12 text-center">
+  <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mb-4">
+    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+  </div>
+  <h2 class="text-lg font-semibold">All items are well stocked</h2>
+  <p class="text-slate-500 mt-1">No products are currently below their minimum stock level.</p>
+</div>
+{% endif %}
+{% endblock %}

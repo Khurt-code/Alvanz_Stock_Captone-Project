@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<nav class="text-sm text-slate-500 mb-4">
+  <a href="{% url 'product_list' %}" class="hover:text-amber-600">Products</a>
+  <span class="mx-2">/</span>
+  <span class="text-slate-700">{{ product.name }}</span>
+</nav>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+  <div class="lg:col-span-2 card p-6">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold">{{ product.name }}</h1>
+        <p class="text-slate-500 mt-1">SKU: {{ product.sku }} · {{ product.category.name|default:"Uncategorized" }} · {{ product.unit }}</p>
+      </div>
+      <div class="flex gap-2">
+        <a href="{% url 'product_edit' product.pk %}" class="btn-secondary text-sm">Edit</a>
+        <form method="post" action="{% url 'product_delete' product.pk %}" onsubmit="return confirm('Remove {{ product.name|escapejs }}?')">
+          {% csrf_token %}
+          <button class="btn-danger text-sm">Delete</button>
+        </form>
+      </div>
+    </div>
+    <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+      <div class="bg-slate-50 rounded-lg p-4">
+        <dt class="text-xs text-slate-500 uppercase tracking-wide">Current Stock</dt>
+        <dd class="text-2xl font-bold {% if product.is_low_stock %}text-red-600{% endif %}">{{ product.quantity }} <span class="text-sm font-normal text-slate-500">{{ product.unit }}</span></dd>
+      </div>
+      <div class="bg-slate-50 rounded-lg p-4">
+        <dt class="text-xs text-slate-500 uppercase tracking-wide">Min. Stock Level</dt>
+        <dd class="text-2xl font-bold">{{ product.min_stock_level }}</dd>
+      </div>
+      <div class="bg-slate-50 rounded-lg p-4">
+        <dt class="text-xs text-slate-500 uppercase tracking-wide">Selling Price</dt>
+        <dd class="text-2xl font-bold">₱{{ product.sell_price|floatformat:2 }}</dd>
+      </div>
+      <div class="bg-slate-50 rounded-lg p-4">
+        <dt class="text-xs text-slate-500 uppercase tracking-wide">Cost Price</dt>
+        <dd class="text-2xl font-bold">₱{{ product.cost_price|floatformat:2 }}</dd>
+      </div>
+    </dl>
+    <div class="mt-6 flex items-center gap-3">
+      {% if product.is_low_stock %}
+        <span class="text-sm font-semibold px-3 py-1.5 rounded bg-red-100 text-red-700">Low stock — restock recommended</span>
+      {% else %}
+        <span class="text-sm font-semibold px-3 py-1.5 rounded bg-emerald-100 text-emerald-700">Stock level OK</span>
+      {% endif %}
+      <a href="{% url 'stock_transaction_create' %}" class="btn-primary text-sm">Record Stock Movement</a>
+    </div>
+  </div>
+
+  <div class="card p-6">
+    <h2 class="font-semibold mb-4">Quick Facts</h2>
+    <dl class="space-y-3 text-sm">
+      <div class="flex justify-between"><dt class="text-slate-500">Added</dt><dd class="font-medium">{{ product.created_at|date:"M d, Y" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Last updated</dt><dd class="font-medium">{{ product.updated_at|date:"M d, Y H:i" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Status</dt><dd class="font-medium">{% if product.is_active %}Active{% else %}Inactive{% endif %}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Stock value</dt><dd class="font-medium">₱{{ product.sell_price|floatformat:2 }}</dd></div>
+    </dl>
+  </div>
+</div>
+
+<div class="card overflow-hidden">
+  <div class="px-6 py-4 border-b border-slate-200">
+    <h2 class="font-semibold">Transaction History</h2>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-slate-50">
+        <tr>
+          <th class="table-head">Type</th>
+          <th class="table-head text-center">Qty</th>
+          <th class="table-head">Reference</th>
+          <th class="table-head">User</th>
+          <th class="table-head">Notes</th>
+          <th class="table-head">Date</th>
+          <th class="table-head text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for t in transactions %}
+        <tr>
+          <td class="table-cell">
+            <span class="text-xs font-semibold px-2 py-1 rounded {% if t.transaction_type == 'IN' %}bg-emerald-100 text-emerald-700{% elif t.transaction_type == 'OUT' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-600{% endif %}">{{ t.get_transaction_type_display }}</span>
+          </td>
+          <td class="table-cell text-center font-medium">{{ t.quantity }}</td>
+          <td class="table-cell text-slate-500">{{ t.reference|default:"—" }}</td>
+          <td class="table-cell">{{ t.user.get_full_name|default:t.user.username|default:"—" }}</td>
+          <td class="table-cell text-slate-500">{{ t.notes|default:"—"|truncatechars:40 }}</td>
+          <td class="table-cell text-slate-500">{{ t.created_at|date:"M d, Y H:i" }}</td>
+          <td class="table-cell text-right">
+            <form method="post" action="{% url 'stock_transaction_delete' t.pk %}" class="inline" onsubmit="return confirm('Delete this {{ t.get_transaction_type_display|lower }} of {{ t.quantity }} × {{ t.product.name|escapejs }}? Stock will be adjusted.')">
+              {% csrf_token %}
+              <button class="text-red-500 hover:text-red-700">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="table-cell text-center text-slate-400 py-8">No transactions recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Point of Sale{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+  <div class="xl:col-span-2">
+    <div class="card p-4 mb-4">
+      <div class="relative">
+        <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+        <input id="pos-search" type="text" placeholder="Search products..." class="input pl-10" autocomplete="off">
+      </div>
+    </div>
+    {% for category, items in categories.items %}
+    <div class="mb-6">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500 mb-3">{{ category }}</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {% for p in items %}
+        <button type="button"
+                class="pos-item text-left card p-3 hover:border-amber-400 hover:shadow-md transition cursor-pointer {% if p.is_low_stock %}opacity-70{% endif %}"
+                data-id="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ p.sell_price }}" data-stock="{{ p.quantity }}"
+                {% if p.quantity == 0 %}disabled{% endif %}>
+          <div class="text-sm font-semibold truncate">{{ p.name }}</div>
+          <div class="text-xs text-slate-500 mt-0.5">₱{{ p.sell_price|floatformat:2 }}</div>
+          <div class="mt-2 text-xs font-medium {% if p.is_low_stock %}text-red-600{% else %}text-slate-400{% endif %}">
+            {% if p.quantity == 0 %}Out of stock{% else %}{{ p.quantity }} in stock{% endif %}
+          </div>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="xl:col-span-1">
+    <div class="card p-5 sticky top-4">
+      <h2 class="font-semibold mb-4">Current Sale</h2>
+      <div id="cart-items" class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto mb-4"></div>
+      <div id="cart-empty" class="text-center text-slate-400 text-sm py-6">No items in cart.<br>Click a product to add it.</div>
+      <div class="space-y-2 pt-3 border-t border-slate-200">
+        <div class="flex justify-between text-sm"><span class="text-slate-500">Subtotal</span><span id="subtotal" class="font-medium">₱0.00</span></div>
+        <div class="flex justify-between text-sm"><span class="text-slate-500">Discount</span>
+          <span class="flex items-center gap-1"><input id="discount-input" type="number" min="0" step="0.01" value="0" class="w-24 text-right input !py-1 text-sm"><span class="text-xs text-slate-400">₱</span></span>
+        </div>
+        <div class="flex justify-between text-lg font-bold pt-1"><span>Total</span><span id="total">₱0.00</span></div>
+        <div class="flex justify-between text-sm"><span class="text-slate-500">Cash Tendered</span>
+          <span class="flex items-center gap-1"><input id="cash-input" type="number" min="0" step="0.01" placeholder="0.00" class="w-28 text-right input !py-1 text-sm"><span class="text-xs text-slate-400">₱</span></span>
+        </div>
+        <div class="flex justify-end"><span id="cash-hint" class="text-[11px] text-slate-400"></span></div>
+        <div class="flex justify-between text-sm"><span class="text-slate-500">Change</span><span id="change" class="font-medium text-emerald-600">₱0.00</span></div>
+      </div>
+      <button id="checkout-btn" class="btn-primary w-full mt-4 py-2.5" disabled>Charge & Print Receipt</button>
+      <button id="clear-btn" class="btn-secondary w-full mt-2 text-sm">Clear Cart</button>
+    </div>
+  </div>
+</div>
+
+<div id="receipt-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+    <div class="max-h-[80vh] overflow-y-auto">
+      <iframe id="receipt-frame" class="w-full border-0" style="height: 70vh;"></iframe>
+    </div>
+    <div class="p-4 border-t border-slate-200 flex gap-2">
+      <button onclick="closeReceipt()" class="btn-secondary flex-1">Close</button>
+      <button onclick="printReceipt()" class="btn-primary flex-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659"/></svg>
+        Print
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const CASH_MULTIPLIER = {{ cash_multiplier }};
+const cart = new Map();
+const search = document.getElementById('pos-search');
+const cartItems = document.getElementById('cart-items');
+const cartEmpty = document.getElementById('cart-empty');
+
+search.addEventListener('input', () => {
+  const q = search.value.toLowerCase().trim();
+  document.querySelectorAll('.pos-item').forEach(btn => {
+    const name = btn.dataset.name.toLowerCase();
+    const id = String(btn.dataset.id);
+    const inCart = cart.has(id);
+    btn.style.display = (q === '' || name.includes(q)) ? '' : 'none';
+    btn.disabled = btn.dataset.stock == 0 && !inCart;
+  });
+});
+
+document.querySelectorAll('.pos-item').forEach(btn => {
+  btn.addEventListener('click', () => addToCart(btn.dataset.id));
+});
+
+function addToCart(id) {
+  const btn = document.querySelector(`.pos-item[data-id="${id}"]`);
+  const item = { name: btn.dataset.name, price: parseFloat(btn.dataset.price), stock: parseInt(btn.dataset.stock) };
+  if (!cart.has(id)) {
+    cart.set(id, { ...item, qty: 0 });
+  }
+  const entry = cart.get(id);
+  if (entry.qty >= item.stock && item.stock > 0) {
+    alert(`Only ${item.stock} of "${item.name}" in stock.`);
+    return;
+  }
+  entry.qty += 1;
+  render();
+}
+
+function render() {
+  cartItems.innerHTML = '';
+  let subtotal = 0;
+  for (const [id, item] of cart) {
+    const lineSub = item.price * item.qty;
+    subtotal += lineSub;
+    const row = document.createElement('div');
+    row.className = 'py-2 flex items-center justify-between gap-2';
+    row.innerHTML = `
+      <div class="min-w-0">
+        <div class="text-sm font-medium truncate">${item.name}</div>
+        <div class="text-xs text-slate-500">₱${item.price.toFixed(2)} × ${item.qty}</div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-semibold whitespace-nowrap">₱${lineSub.toFixed(2)}</span>
+        <button onclick="changeQty('${id}', -1)" class="w-6 h-6 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs">−</button>
+        <button onclick="changeQty('${id}', 1)" class="w-6 h-6 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs" ${item.qty >= item.stock ? 'disabled' : ''}>+</button>
+      </div>`;
+    cartItems.appendChild(row);
+  }
+  cartEmpty.style.display = cart.size === 0 ? 'block' : 'none';
+  document.getElementById('subtotal').textContent = `₱${subtotal.toFixed(2)}`;
+  updateTotals();
+}
+
+function changeQty(id, delta) {
+  const item = cart.get(id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart.delete(id);
+  render();
+}
+
+function updateTotals() {
+  const subtotal = [...cart.values()].reduce((s, i) => s + i.price * i.qty, 0);
+  const discount = parseFloat(document.getElementById('discount-input').value) || 0;
+  const total = Math.max(0, subtotal - discount);
+  const cash = parseFloat(document.getElementById('cash-input').value) || 0;
+  const maxCash = total * CASH_MULTIPLIER;
+  const cashInput = document.getElementById('cash-input');
+  cashInput.max = total > 0 ? maxCash.toFixed(2) : 0;
+  const hint = document.getElementById('cash-hint');
+  if (total > 0) {
+    hint.textContent = `Max cash: ₱${maxCash.toFixed(2)} (${CASH_MULTIPLIER}x total)`;
+    hint.classList.toggle('text-red-500', cash > maxCash);
+  } else {
+    hint.textContent = '';
+  }
+  document.getElementById('total').textContent = `₱${total.toFixed(2)}`;
+  document.getElementById('change').textContent = `₱${Math.max(0, cash - total).toFixed(2)}`;
+  document.getElementById('checkout-btn').disabled = cart.size === 0 || total <= 0;
+}
+
+document.getElementById('discount-input').addEventListener('input', updateTotals);
+document.getElementById('cash-input').addEventListener('input', updateTotals);
+document.getElementById('clear-btn').addEventListener('click', () => { cart.clear(); render(); });
+
+document.getElementById('checkout-btn').addEventListener('click', async () => {
+  if (cart.size === 0) return;
+  const subtotal = [...cart.values()].reduce((s, i) => s + i.price * i.qty, 0);
+  const discount = parseFloat(document.getElementById('discount-input').value) || 0;
+  const cash = parseFloat(document.getElementById('cash-input').value) || 0;
+  if (discount > subtotal) return alert('Discount cannot exceed subtotal.');
+  if (cash < subtotal - discount) return alert('Insufficient cash tendered.');
+  const total = subtotal - discount;
+  const maxCash = total * CASH_MULTIPLIER;
+  if (cash > maxCash) return alert(`Cash tendered exceeds the limit of ${CASH_MULTIPLIER}x the total (max ₱${maxCash.toFixed(2)}).`);
+
+  const payload = {
+    items: [...cart.entries()].map(([id, i]) => ({ id: Number(id), qty: i.qty })),
+    cash, discount
+  };
+  try {
+    const res = await fetch("{% url 'pos_checkout' %}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('receipt-frame').src = `/receipt/${data.sale_id}/`;
+      document.getElementById('receipt-modal').classList.remove('hidden');
+      cart.clear();
+      render();
+      document.getElementById('cash-input').value = '';
+      document.getElementById('discount-input').value = 0;
+      document.getElementById('cash-input').value = '';
+      updateTotals();
+      const stockEls = document.querySelectorAll('.pos-item');
+      stockEls.forEach(b => { b.disabled = b.dataset.stock == 0; });
+    } else {
+      alert(data.error || 'Checkout failed.');
+    }
+  } catch (e) {
+    alert('Connection error during checkout.');
+  }
+});
+
+function closeReceipt() {
+  document.getElementById('receipt-modal').classList.add('hidden');
+  document.getElementById('receipt-frame').src = 'about:blank';
+}
+function printReceipt() {
+  const frame = document.getElementById('receipt-frame');
+  frame.contentWindow.print();
+}
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+</script>
+{% endblock %}

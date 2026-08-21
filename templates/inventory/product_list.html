@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Products</h1>
+    <p class="text-slate-500 mt-1">{{ products.paginator.count }} active products</p>
+  </div>
+  <a href="{% url 'product_create' %}" class="btn-primary">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Add Product
+  </a>
+</div>
+
+<form method="get" class="card p-4 mb-6 flex flex-col sm:flex-row gap-3">
+  <input type="text" name="q" value="{{ query }}" placeholder="Search by name or SKU..." class="input flex-1">
+  <select name="category" class="input sm:w-56">
+    <option value="">All categories</option>
+    {% for c in categories %}
+      <option value="{{ c.id }}" {% if category_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-secondary">Filter</button>
+</form>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-slate-50">
+        <tr>
+          <th class="table-head">Product</th>
+          <th class="table-head">SKU</th>
+          <th class="table-head">Category</th>
+          <th class="table-head">Unit</th>
+          <th class="table-head text-right">Price</th>
+          <th class="table-head text-center">Stock</th>
+          <th class="table-head text-center">Status</th>
+          <th class="table-head text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for p in products %}
+        <tr class="hover:bg-slate-50">
+          <td class="table-cell font-medium"><a href="{% url 'product_detail' p.pk %}" class="hover:text-amber-600">{{ p.name }}</a></td>
+          <td class="table-cell text-slate-500">{{ p.sku }}</td>
+          <td class="table-cell">{{ p.category.name|default:"—" }}</td>
+          <td class="table-cell text-slate-500">{{ p.unit }}</td>
+          <td class="table-cell text-right font-medium">₱{{ p.sell_price|floatformat:2 }}</td>
+          <td class="table-cell text-center {% if p.is_low_stock %}text-red-600 font-semibold{% endif %}">{{ p.quantity }}</td>
+          <td class="table-cell text-center">
+            {% if p.is_low_stock %}
+              <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded bg-red-100 text-red-700">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Low Stock
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded bg-emerald-100 text-emerald-700">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>In Stock
+              </span>
+            {% endif %}
+          </td>
+          <td class="table-cell text-right whitespace-nowrap">
+            <a href="{% url 'product_edit' p.pk %}" class="text-slate-500 hover:text-amber-600 mr-3">Edit</a>
+            <form method="post" action="{% url 'product_delete' p.pk %}" class="inline" onsubmit="return confirm('Remove {{ p.name|escapejs }}?')">
+              {% csrf_token %}
+              <button class="text-red-500 hover:text-red-700">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="table-cell text-center text-slate-400 py-10">No products found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if products.paginator.num_pages > 1 %}
+  <div class="px-4 py-3 border-t border-slate-200 flex items-center justify-between">
+    <span class="text-sm text-slate-500">Page {{ products.number }} of {{ products.paginator.num_pages }}</span>
+    <div class="flex gap-2">
+      {% if products.has_previous %}
+        <a href="?page={{ products.previous_page_number }}&q={{ query }}&category={{ category_id }}" class="btn-secondary text-xs px-3 py-1.5">Prev</a>
+      {% endif %}
+      {% if products.has_next %}
+        <a href="?page={{ products.next_page_number }}&q={{ query }}&category={{ category_id }}" class="btn-secondary text-xs px-3 py-1.5">Next</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

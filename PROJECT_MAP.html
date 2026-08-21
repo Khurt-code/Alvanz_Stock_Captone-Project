@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlvanzStock — Project Map</title>
+<style>
+  :root{
+    --amber:#f59e0b; --amber-bg:#fffbeb; --amber-border:#fcd34d;
+    --blue:#3b82f6; --blue-bg:#eff6ff; --blue-border:#93c5fd;
+    --green:#10b981; --green-bg:#ecfdf5; --green-border:#6ee7b7;
+    --purple:#8b5cf6; --purple-bg:#f5f3ff; --purple-border:#c4b5fd;
+    --slate:#64748b; --slate-bg:#f8fafc; --slate-border:#cbd5e1;
+    --red:#ef4444; --red-bg:#fef2f2; --red-border:#fca5a5;
+    --ink:#0f172a; --muted:#64748b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:var(--ink);padding-bottom:60px}
+  header{position:sticky;top:0;z-index:50;background:#0f172a;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header .logo{width:40px;height:40px;border-radius:10px;background:var(--amber);color:#0f172a;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:20px}
+  header h1{font-size:20px}
+  header small{color:#94a3b8}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-left:auto;font-size:12px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+  main{max-width:1280px;margin:0 auto;padding:24px}
+  section{margin-bottom:32px}
+  h2{font-size:18px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  h2 .tag{font-size:11px;font-weight:600;color:var(--muted);background:#e2e8f0;padding:2px 8px;border-radius:999px}
+  .node{border-radius:10px;padding:10px 12px;font-size:13px;border:2px solid;line-height:1.35}
+  .node .t{font-weight:700;display:block}
+  .node .s{font-size:11px;color:var(--muted)}
+  .v{background:var(--blue-bg);border-color:var(--blue-border)}
+  .m{background:var(--green-bg);border-color:var(--green-border)}
+  .t{background:var(--amber-bg);border-color:var(--amber-border)}
+  .u{background:var(--purple-bg);border-color:var(--purple-border)}
+  .c{background:var(--slate-bg);border-color:var(--slate-border)}
+  .flow{background:#fff;border:1px solid var(--slate-border);border-radius:14px;padding:20px;overflow-x:auto}
+  .flow-row{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;min-width:900px}
+  .arrow{font-size:22px;color:var(--muted);font-weight:800;flex-shrink:0}
+  .arrow.v{color:var(--blue)} .arrow.g{color:var(--green)} .arrow.a{color:var(--amber)}
+  .urls{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+  .url-card{background:#fff;border:1px solid var(--slate-border);border-radius:10px;padding:10px 12px;font-size:12px}
+  .url-card code{font-weight:700;color:var(--purple);font-family:monospace;font-size:11px}
+  .url-card .chain{margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px}
+  .chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid}
+  .chip.v{background:var(--blue-bg);border-color:var(--blue-border);color:#1d4ed8}
+  .chip.t{background:var(--amber-bg);border-color:var(--amber-border);color:#92400e}
+  .apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  .app{border-radius:14px;border:1px solid var(--slate-border);background:#fff;overflow:hidden}
+  .app-h{display:flex;align-items:center;gap:10px;padding:12px 16px;font-weight:800;color:#fff}
+  .app-h code{font-weight:600;opacity:.85;font-size:12px}
+  .app-body{padding:12px;font-size:12px}
+  .group-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:10px 0 6px}
+  .file-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px}
+  .file-row:hover{background:#f8fafc}
+  .file-row .fname{font-family:monospace;font-size:12px}
+  .file-row .desc{color:var(--muted);font-size:11px}
+  .ico{width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
+  .ico.v{background:var(--blue)} .ico.m{background:var(--green)} .ico.t{background:var(--amber)} .ico.u{background:var(--purple)} .ico.c{background:var(--slate)}
+  .components{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .comp{background:#fff;border:1px solid var(--slate-border);border-radius:12px;padding:12px;font-size:12px}
+  .comp .code{font-family:monospace;font-weight:800;font-size:13px;color:#0f172a;background:#e2e8f0;padding:1px 8px;border-radius:6px;display:inline-block;margin-bottom:8px}
+  .comp .uses{color:var(--muted);line-height:1.6}
+  .comp .uses b{color:#334155}
+  .baseflow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid var(--slate-border);border-radius:14px;padding:16px;font-size:12px}
+  .comp .pill{display:inline-block;margin:2px 3px;padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:600;background:#f1f5f9;border:1px solid #e2e8f0}
+  .search-wrap{margin-bottom:16px}
+  #search{width:100%;max-width:420px;padding:10px 14px;border-radius:10px;border:2px solid var(--slate-border);font-size:13px}
+  #search:focus{outline:none;border-color:var(--amber)}
+  footer{margin-top:32px;text-align:center;color:var(--muted);font-size:12px}
+  @media print{ header{position:static} .flow-row{min-width:0} }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">A</div>
+  <div><h1>AlvanzStock — Project Map</h1><small>Web-Based Inventory &amp; POS System · Django 6 + TailwindCSS</small></div>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--blue)"></i>View/URL</span>
+    <span><i class="dot" style="background:var(--green)"></i>Model</span>
+    <span><i class="dot" style="background:var(--amber)"></i>Template</span>
+    <span><i class="dot" style="background:var(--purple)"></i>Routes</span>
+    <span><i class="dot" style="background:var(--slate)"></i>Config</span>
+  </div>
+</header>
+<main>
+  <div class="search-wrap"><input id="search" placeholder="Search files, templates, components..."></div>
+
+  <section id="sec-arch">
+    <h2>1 · Request Flow <span class="tag">how a URL becomes a page</span></h2>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="node u" style="min-width:150px"><span class="t">Browser</span><span class="s">GET /url</span></div>
+        <div class="arrow">→</div>
+        <div class="node u" style="min-width:170px"><span class="t">alvanzstock/urls.py</span><span class="s">root router</span></div>
+        <div class="arrow">→</div>
+        <div class="node u" style="min-width:150px"><span class="t">app/urls.py</span><span class="s">inventory · pos · accounts</span></div>
+        <div class="arrow v">→</div>
+        <div class="node v" style="min-width:170px"><span class="t">app/views.py</span><span class="s">view function</span></div>
+        <div class="arrow g">⇄</div>
+        <div class="node m" style="min-width:160px"><span class="t">app/models.py</span><span class="s">SQLite queries</span></div>
+        <div class="arrow a">→</div>
+        <div class="node t" style="min-width:160px"><span class="t">templates/…</span><span class="s">renders HTML</span></div>
+        <div class="arrow">→</div>
+        <div class="node u" style="min-width:150px"><span class="t">Browser</span><span class="s">styled page</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-http">
+    <h2>2 · HTTP Endpoints <span class="tag">URL → view → template</span></h2>
+    <div class="urls" id="urlgrid"></div>
+  </section>
+
+  <section id="sec-files">
+    <h2>3 · File Structure <span class="tag">grouped by app</span></h2>
+    <div class="apps" id="appgrid"></div>
+  </section>
+
+  <section id="sec-templates">
+    <h2>4 · Template Inheritance <span class="tag">all pages extend base.html</span></h2>
+    <div class="baseflow">
+      <div class="node c" style="min-width:190px"><span class="t">base.html</span><span class="s">sidebar · header · blocks: title / content / bare / scripts</span></div>
+      <div class="arrow">▼ extends</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1">
+        <div class="node t">dashboard.html</div>
+        <div class="node t">product_list.html</div>
+        <div class="node t">product_form.html</div>
+        <div class="node t">product_detail.html</div>
+        <div class="node t">category_list.html</div>
+        <div class="node t">category_form.html</div>
+        <div class="node t">stock_list.html</div>
+        <div class="node t">stock_form.html</div>
+        <div class="node t">low_stock.html</div>
+        <div class="node t">pos_screen.html</div>
+        <div class="node t">sales_list.html</div>
+        <div class="node t">sales_report.html</div>
+        <div class="node t">inventory_report.html</div>
+        <div class="node t">login.html <i>(uses bare)</i></div>
+      </div>
+      <div style="margin-top:12px;width:100%;display:flex;align-items:center;gap:8px;border-top:2px dashed var(--slate-border);padding-top:12px">
+        <span style="font-weight:700;font-size:12px;color:var(--muted)">EXCEPTION</span>
+        <div class="arrow">→</div>
+        <div class="node c" style="border-color:var(--red-border);background:var(--red-bg)"><span class="t">receipt.html</span><span class="s">standalone printable · no base · embedded in POS modal via iframe</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-components">
+    <h2>5 · UI Components <span class="tag">reusable CSS classes from static/css/input.css</span></h2>
+    <div class="components" id="compgrid"></div>
+  </section>
+
+  <section id="sec-data">
+    <h2>6 · Data Layer <span class="tag">models &amp; how stock updates</span></h2>
+    <div class="flow" style="min-width:0">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <div class="node m" style="width:200px"><span class="t">accounts.User</span><span class="s">role: manager / cashier / staff</span></div>
+        <div class="node m" style="width:200px"><span class="t">inventory.Category</span><span class="s">product grouping</span></div>
+        <div class="node m" style="width:200px"><span class="t">inventory.Product</span><span class="s">quantity · min_stock_level → low-stock</span></div>
+        <div class="node m" style="width:200px"><span class="t">inventory.StockTransaction</span><span class="s">IN / OUT / ADJ → auto-updates Product.quantity</span></div>
+        <div class="node m" style="width:200px"><span class="t">pos.Sale</span><span class="s">receipt_no · totals · change</span></div>
+        <div class="node m" style="width:200px"><span class="t">pos.SaleItem</span><span class="s">line items</span></div>
+        <div class="node m" style="width:200px;border-color:var(--red-border);background:var(--red-bg)"><span class="t">pos.record_sale()</span><span class="s">atomic: Sale + items + stock-out txn</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>AlvanzStock capstone · regenerate styles with <code>npm run build:css</code></footer>
+</main>
+
+<script>
+const URLS=[
+  {url:'/',view:'inventory/views.py → dashboard',tmpl:'dashboard.html'},
+  {url:'/products/',view:'inventory/views.py → product_list',tmpl:'inventory/product_list.html'},
+  {url:'/products/new/',view:'inventory/views.py → product_create',tmpl:'inventory/product_form.html'},
+  {url:'/products/&lt;id&gt;/',view:'inventory/views.py → product_detail',tmpl:'inventory/product_detail.html'},
+  {url:'/products/&lt;id&gt;/edit/',view:'inventory/views.py → product_edit',tmpl:'inventory/product_form.html'},
+  {url:'/categories/',view:'inventory/views.py → category_list',tmpl:'inventory/category_list.html'},
+  {url:'/categories/new/',view:'inventory/views.py → category_create',tmpl:'inventory/category_form.html'},
+  {url:'/stock/',view:'inventory/views.py → stock_transaction_list',tmpl:'inventory/stock_list.html'},
+  {url:'/stock/new/',view:'inventory/views.py → stock_transaction_create',tmpl:'inventory/stock_form.html'},
+  {url:'/low-stock/',view:'inventory/views.py → low_stock',tmpl:'inventory/low_stock.html'},
+  {url:'/pos/',view:'pos/views.py → pos_screen',tmpl:'pos/pos_screen.html'},
+  {url:'/pos/checkout/',view:'pos/views.py → pos_checkout',tmpl:'JSON API'},
+  {url:'/receipt/&lt;id&gt;/',view:'pos/views.py → sale_receipt',tmpl:'pos/receipt.html'},
+  {url:'/sales/',view:'pos/views.py → sales_list',tmpl:'pos/sales_list.html'},
+  {url:'/reports/sales/',view:'pos/views.py → sales_report',tmpl:'reports/sales_report.html'},
+  {url:'/reports/inventory/',view:'pos/views.py → inventory_report',tmpl:'reports/inventory_report.html'},
+  {url:'/accounts/login/',view:'accounts/views.py → AlvanzLoginView',tmpl:'registration/login.html'},
+  {url:'/admin/',view:'Django admin',tmpl:'—'},
+];
+const FILES=[
+ {name:'accounts',color:'#0ea5e9',label:'auth & roles',groups:[
+   {label:'Models',items:[['models.py','custom User with role field','m']]},
+   {label:'Views / Routes',items:[['views.py','AlvanzLoginView','v'],['urls.py','/login','u']]},
+   {label:'Admin',items:[['admin.py','user + role admin','c']]},
+ ]},
+ {name:'inventory',color:'#10b981',label:'products · stock · low-stock',groups:[
+   {label:'Models',items:[['models.py','Category · Product · StockTransaction','m']]},
+   {label:'Views',items:[['views.py','dashboard, product/category/stock CRUD, low_stock','v']]},
+   {label:'Routes',items:[['urls.py','/ /products/ /categories/ /stock/','u']]},
+   {label:'Forms',items:[['forms.py','ProductForm · CategoryForm · StockTransactionForm','c']]},
+   {label:'Seed',items:[['management/commands/seed_data.py','demo accounts + data','c']]},
+   {label:'Admin',items:[['admin.py','CRUD + stock transaction inline','c']]},
+ ]},
+ {name:'pos',color:'#8b5cf6',label:'sales · POS · reports',groups:[
+   {label:'Models',items:[['models.py','Sale · SaleItem · record_sale()','m']]},
+   {label:'Views',items:[['views.py','pos_screen, checkout API, receipts, reports','v']]},
+   {label:'Routes',items:[['urls.py','/pos/ /receipt/ /sales/ /reports/','u']]},
+   {label:'Admin',items:[['admin.py','sale + items admin','c']]},
+ ]},
+ {name:'templates',color:'#f59e0b',label:'UI pages (Tailwind)',groups:[
+   {label:'Root',items:[['base.html','layout: sidebar/header/blocks','t'],['dashboard.html','overview + alerts','t']]},
+   {label:'inventory/',items:[['product_list.html','table + search/filter','t'],['product_form.html','add/edit form','t'],['product_detail.html','stats + history','t'],['category_list.html','grid','t'],['category_form.html','form','t'],['stock_list.html','movements table','t'],['stock_form.html','IN/OUT form','t'],['low_stock.html','alert list','t']]},
+   {label:'pos/',items:[['pos_screen.html','catalog + cart + modal','t'],['receipt.html','printable receipt','t'],['sales_list.html','transactions','t']]},
+   {label:'reports/',items:[['sales_report.html','period stats','t'],['inventory_report.html','valuation','t']]},
+   {label:'registration/',items:[['login.html','uses bare block','t']]},
+ ]},
+ {name:'project config',color:'#64748b',label:'alvanzstock/ + root',groups:[
+   {label:'Config',items:[['alvanzstock/settings.py','apps · auth · static · ALLOWED_HOSTS','c'],['alvanzstock/urls.py','include apps','u'],['manage.py','CLI','c']]},
+   {label:'Tailwind',items:[['tailwind.config.js','scans templates','c'],['static/css/input.css','@tailwind + components','c'],['static/css/output.css','compiled CSS (served)','c'],['package.json','build:css / watch:css','c']]},
+   {label:'Docs',items:[['README.md','setup guide','c']]},
+ ]},
+];
+const COMPS=[
+ {name:'.btn-primary',uses:'Amber action button — login, all forms, list pages, POS, low-stock, sales'},
+ {name:'.btn-secondary',uses:'Neutral outlined — filters, cancel, print, period pills'},
+ {name:'.btn-danger',uses:'Red delete — product_detail.html only'},
+ {name:'.card',uses:'White rounded panel — dashboard stats, tables, forms, POS cart, login'},
+ {name:'.input',uses:'Form field — product_form, category_form, stock_form, pos_screen, sales_list, login'},
+ {name:'.label',uses:'Form labels — all form templates'},
+ {name:'.table-head',uses:'Table headers — dashboard, product_list, product_detail, stock_list, low_stock, sales_list, sales_report, inventory_report'},
+ {name:'.table-cell',uses:'Table cells — same 8 tables as .table-head'},
+ {name:'pos-item (inline)',uses:'POS product buttons — pos_screen.html grid + cart JS'},
+ {name:'stat-card (inline)',uses:'Dashboard KPI cards — dashboard.html'},
+];
+function esc(s){return s;}
+function renderURLs(filter){const g=document.getElementById('urlgrid');g.innerHTML=URLS.map(u=>{
+  const key=(u.url+u.view+u.tmpl).toLowerCase();
+  if(filter&&!key.includes(filter))return'';
+  return`<div class="url-card"><code>${u.url}</code><div class="chain"><span class="chip v">${u.view}</span>→<span class="chip t">${u.tmpl}</span></div></div>`;
+}).join('')}
+function renderFiles(filter){const g=document.getElementById('appgrid');g.innerHTML=FILES.map(app=>{
+  const key=(app.name+app.label+app.groups.map(gr=>gr.items.map(i=>i[0]+i[1]).join(' ')).join(' ')).toLowerCase();
+  if(filter&&!key.includes(filter))return'';
+  return`<div class="app"><div class="app-h" style="background:${app.color}"><span>${app.name}</span><code>${app.label}</code></div><div class="app-body">${app.groups.map(gr=>`<div class="group-label">${gr.label}</div>${gr.items.map(it=>`<div class="file-row"><span class="ico ${it[2]}">${it[2]==='t'?'T':it[2]==='m'?'M':it[2]==='v'?'V':it[2]==='u'?'U':'C'}</span><div><div class="fname">${it[0]}</div><div class="desc">${it[1]}</div></div></div>`).join('')}`).join('')}</div></div>`;
+}).join('')}
+function renderComps(filter){const g=document.getElementById('compgrid');g.innerHTML=COMPS.map(c=>{
+  const key=(c.name+c.uses).toLowerCase();
+  if(filter&&!key.includes(filter))return'';
+  return`<div class="comp"><span class="code">${c.name}</span><div class="uses">${c.uses.split('—')[0]}<b> — ${c.uses.split('—')[1]||''}</b></div></div>`;
+}).join('')}
+const search=document.getElementById('search');
+search.addEventListener('input',e=>{const f=e.target.value.trim().toLowerCase();renderURLs(f);renderFiles(f);renderComps(f)});
+renderURLs('');renderFiles('');renderComps('');
+</script>
+</body>
+</html>

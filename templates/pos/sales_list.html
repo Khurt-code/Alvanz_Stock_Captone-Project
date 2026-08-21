@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Sales{% endblock %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Sales Transactions</h1>
+    <p class="text-slate-500 mt-1">Total: <span class="font-semibold text-slate-700">₱{{ total|floatformat:2 }}</span> · {{ sales|length }} transactions</p>
+  </div>
+  <a href="{% url 'pos_screen' %}" class="btn-primary">New Sale</a>
+</div>
+
+<form method="get" class="card p-4 mb-6 flex flex-col sm:flex-row gap-3">
+  <input type="date" name="from" value="{{ start }}" class="input">
+  <input type="date" name="to" value="{{ end }}" class="input">
+  <button type="submit" class="btn-primary">Filter</button>
+  <a href="{% url 'sales_list' %}" class="btn-secondary">Reset</a>
+</form>
+
+{% if filter_error %}
+  <div class="mb-4 px-4 py-3 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">{{ filter_error }}</div>
+{% endif %}
+
+{% if filter_active %}
+  <div class="mb-4 px-4 py-3 rounded-lg text-sm bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-between gap-3">
+    <span>Showing sales <b>{% if start %}from {{ start }}{% else %}from the beginning{% endif %}{% if end %} to {{ end }}{% endif %}</b> · {{ sales|length }} transaction{{ sales|length|pluralize }}</span>
+    <a href="{% url 'sales_list' %}" class="font-semibold underline hover:text-blue-900">Clear filter</a>
+  </div>
+{% endif %}
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-slate-50">
+        <tr>
+          <th class="table-head">Receipt No.</th>
+          <th class="table-head">Cashier</th>
+          <th class="table-head text-right">Subtotal</th>
+          <th class="table-head text-right">Discount</th>
+          <th class="table-head text-right">Total</th>
+          <th class="table-head text-right">Cash</th>
+          <th class="table-head text-right">Change</th>
+          <th class="table-head">Date & Time</th>
+          <th class="table-head text-right">Receipt</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for s in sales %}
+        <tr class="hover:bg-slate-50">
+          <td class="table-cell font-medium">{{ s.receipt_no }}</td>
+          <td class="table-cell">{{ s.cashier.get_full_name|default:s.cashier.username }}</td>
+          <td class="table-cell text-right">₱{{ s.subtotal|floatformat:2 }}</td>
+          <td class="table-cell text-right {% if s.discount %}text-red-600{% endif %}">{% if s.discount %}-₱{{ s.discount|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td class="table-cell text-right font-semibold">₱{{ s.total|floatformat:2 }}</td>
+          <td class="table-cell text-right">₱{{ s.cash_tendered|floatformat:2 }}</td>
+          <td class="table-cell text-right">₱{{ s.change|floatformat:2 }}</td>
+          <td class="table-cell text-slate-500">{{ s.created_at|date:"M d, Y H:i" }}</td>
+          <td class="table-cell text-right"><a href="{% url 'sale_receipt' s.pk %}" target="_blank" class="text-amber-600 hover:underline font-medium">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="table-cell text-center text-slate-400 py-8">No sales found for this filter.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

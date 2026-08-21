@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Receipt {{ sale.receipt_no }}</title>
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+</head>
+<body class="bg-white text-slate-900 font-mono">
+  <div class="max-w-xs mx-auto p-4 text-[13px] leading-snug">
+    <div class="text-center mb-3">
+      <div class="text-lg font-bold">ALVANZ HARDWARE</div>
+      <div>Poblacion, Balingasag, Misamis Oriental</div>
+      <div>Tel: (000) 000-0000</div>
+    </div>
+    <hr class="border-dashed border-t border-slate-400 my-2">
+    <div class="flex justify-between"><span>Receipt No:</span><span>{{ sale.receipt_no }}</span></div>
+    <div class="flex justify-between"><span>Date:</span><span>{{ sale.created_at|date:"M d, Y" }}</span></div>
+    <div class="flex justify-between"><span>Time:</span><span>{{ sale.created_at|time:"H:i:s" }}</span></div>
+    <div class="flex justify-between"><span>Cashier:</span><span>{{ sale.cashier.get_full_name|default:sale.cashier.username }}</span></div>
+    <hr class="border-dashed border-t border-slate-400 my-2">
+    <table class="w-full">
+      <thead>
+        <tr class="text-left">
+          <th>Item</th>
+          <th class="text-center">Qty</th>
+          <th class="text-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in sale.items.all %}
+        <tr>
+          <td class="pr-2">{{ item.product.name }}</td>
+          <td class="text-center">{{ item.quantity }}</td>
+          <td class="text-right">{{ item.subtotal|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <hr class="border-dashed border-t border-slate-400 my-2">
+    <div class="flex justify-between"><span>Subtotal</span><span>₱{{ sale.subtotal|floatformat:2 }}</span></div>
+    <div class="flex justify-between"><span>Discount</span><span>-₱{{ sale.discount|floatformat:2 }}</span></div>
+    <div class="flex justify-between text-base font-bold mt-1"><span>TOTAL</span><span>₱{{ sale.total|floatformat:2 }}</span></div>
+    <div class="flex justify-between"><span>Cash</span><span>₱{{ sale.cash_tendered|floatformat:2 }}</span></div>
+    <div class="flex justify-between"><span>Change</span><span>₱{{ sale.change|floatformat:2 }}</span></div>
+    <hr class="border-dashed border-t border-slate-400 my-2">
+    <div class="text-center">
+      <p>Thank you for your purchase!</p>
+      <p class="mt-1">This receipt is computer generated.</p>
+    </div>
+  </div>
+</body>
+</html>

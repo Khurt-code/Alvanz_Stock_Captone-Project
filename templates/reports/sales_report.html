@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Sales Report{% endblock %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">Sales Report</h1>
+    <p class="text-slate-500 mt-1">{{ start|date:"M d, Y" }} — {{ end|date:"M d, Y" }}</p>
+  </div>
+  <div class="flex gap-2">
+    {% for label, key in periods %}
+    <a href="?period={{ key }}" class="btn-secondary text-xs px-3 py-1.5 {% if period == key %}bg-slate-900 text-white border-slate-900 hover:bg-slate-800{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+  <div class="card p-5">
+    <div class="text-sm text-slate-500">Transactions</div>
+    <div class="text-3xl font-bold mt-1">{{ summary.count|default:0 }}</div>
+  </div>
+  <div class="card p-5">
+    <div class="text-sm text-slate-500">Gross Sales</div>
+    <div class="text-3xl font-bold mt-1">₱{{ summary.subtotal|default:0|floatformat:2 }}</div>
+  </div>
+  <div class="card p-5">
+    <div class="text-sm text-slate-500">Discounts</div>
+    <div class="text-3xl font-bold mt-1 text-red-600">-₱{{ summary.discount|default:0|floatformat:2 }}</div>
+  </div>
+  <div class="card p-5">
+    <div class="text-sm text-slate-500">Net Sales</div>
+    <div class="text-3xl font-bold mt-1 text-emerald-600">₱{{ summary.total|default:0|floatformat:2 }}</div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+  <div class="xl:col-span-1 card overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-200"><h2 class="font-semibold">Daily Breakdown</h2></div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-slate-50">
+          <tr><th class="table-head">Day</th><th class="table-head text-center">Sales</th><th class="table-head text-right">Total</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for d in daily_sales %}
+          <tr>
+            <td class="table-cell">{{ d.day }}</td>
+            <td class="table-cell text-center">{{ d.count }}</td>
+            <td class="table-cell text-right font-medium">₱{{ d.total|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="table-cell text-center text-slate-400 py-6">No data for this period.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="xl:col-span-2 card overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-200"><h2 class="font-semibold">Recent Transactions</h2></div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-slate-50">
+          <tr><th class="table-head">Receipt</th><th class="table-head">Cashier</th><th class="table-head text-right">Discount</th><th class="table-head text-right">Total</th><th class="table-head">Date</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for s in sales %}
+          <tr class="hover:bg-slate-50">
+            <td class="table-cell font-medium"><a href="{% url 'sale_receipt' s.pk %}" class="text-amber-600 hover:underline">{{ s.receipt_no }}</a></td>
+            <td class="table-cell">{{ s.cashier.get_full_name|default:s.cashier.username }}</td>
+            <td class="table-cell text-right">{% if s.discount %}₱{{ s.discount|floatformat:2 }}{% else %}—{% endif %}</td>
+            <td class="table-cell text-right font-semibold">₱{{ s.total|floatformat:2 }}</td>
+            <td class="table-cell text-slate-500">{{ s.created_at|date:"M d, Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="table-cell text-center text-slate-400 py-6">No transactions in this period.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

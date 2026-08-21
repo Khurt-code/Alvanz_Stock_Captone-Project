@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Record Stock Movement{% endblock %}
+{% block content %}
+<div class="max-w-xl">
+  <h1 class="text-2xl font-bold mb-2">Record Stock Movement</h1>
+  <p class="text-slate-500 mb-6">Stock in adds to inventory; stock out and adjustments subtract from it.</p>
+  <form method="post" class="card p-6 space-y-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="px-4 py-3 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% for field in form %}
+      <div>
+        <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <div class="flex gap-3 pt-2">
+      <button type="submit" class="btn-primary">Save Transaction</button>
+      <a href="{% url 'stock_transaction_list' %}" class="btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
