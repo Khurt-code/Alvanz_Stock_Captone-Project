@@ -37,6 +37,34 @@ Open http://127.0.0.1:8000
 | cashier  | cashier123 | Cashier |
 | staff    | staff123   | Staff   |
 
+## Adding Accounts
+
+There is no in-app user-management page. Add user accounts either through Django Admin or via the shell.
+
+### Via Django Admin (recommended)
+
+1. Start the server: `./venv/bin/python manage.py runserver`
+2. Log in at http://127.0.0.1:8000/admin/ (e.g. `admin` / `admin123`)
+3. Go to **Users → Add user**, enter a username and password, then click *Save*
+4. On the next screen set:
+   - **Role** — `Manager`, `Cashier`, or `Staff` (controls access; only Managers see Sales & Reports)
+   - **Staff status** / **Superuser status** — check these if the account should also manage Django Admin
+   - Optionally first/last name and email
+
+### Via shell
+
+```bash
+./venv/bin/python manage.py shell -c "
+from accounts.models import User
+u = User.objects.create_user('username', password='pass123', role=User.Role.CASHIER)
+u.first_name = 'First'
+u.last_name = 'Last'
+u.save()
+"
+```
+
+Available roles: `User.Role.MANAGER`, `User.Role.CASHIER`, `User.Role.STAFF`.
+
 ### Tailwind
 
 CSS is already compiled to `static/css/output.css`. If you modify templates:

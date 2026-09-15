@@ -7,13 +7,26 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, F, Sum
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from functools import wraps
 
 from inventory.models import Product
 
 from .models import Sale, record_sale
+
+
+def manager_required(view_func):
+    @wraps(view_func)
+    @login_required
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_manager:
+            messages.error(request, "You don't have permission to view Sales & Reports.")
+            return redirect("dashboard")
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped
 
 
 @login_required
@@ -81,7 +94,7 @@ def sale_receipt(request, pk):
     return render(request, "pos/receipt.html", {"sale": sale})
 
 
-@login_required
+@manager_required
 def sales_list(request):
     sales = Sale.objects.select_related("cashier").prefetch_related("items__product")
     start = request.GET.get("from", "").strip()
@@ -107,7 +120,7 @@ def sales_list(request):
     return render(request, "pos/sales_list.html", context)
 
 
-@login_required
+@manager_required
 def sales_report(request):
     period = request.GET.get("period", "today")
     now = timezone.now()
@@ -146,7 +159,7 @@ def sales_report(request):
     )
 
 
-@login_required
+@manager_required
 def inventory_report(request):
     products = Product.objects.select_related("category").filter(is_active=True).order_by("category__name", "name")
     total_cost = sum(p.cost_price * p.quantity for p in products)
