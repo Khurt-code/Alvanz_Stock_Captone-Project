@@ -3,7 +3,7 @@
 {% block content %}
 <div class="max-w-2xl">
   <h1 class="text-2xl font-bold mb-6">{{ title }}</h1>
-  <form method="post" class="card p-6 space-y-4">
+  <form method="post" enctype="multipart/form-data" class="card p-6 space-y-4">
     {% csrf_token %}
     {% if form.non_field_errors %}
       <div class="px-4 py-3 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">{{ form.non_field_errors }}</div>
@@ -12,6 +12,9 @@
       {% for field in form %}
         <div class="{% if field.name in 'notes,description' %}sm:col-span-2{% endif %}">
           <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {% if field.name == "image" and product.image %}
+            <img src="{{ product.image.url }}" alt="Current image of {{ product.name }}" class="mb-2 h-20 w-20 rounded-md border border-slate-200 object-cover">
+          {% endif %}
           {{ field }}
           {% for error in field.errors %}
             <p class="text-xs text-red-600 mt-1">{{ error }}</p>

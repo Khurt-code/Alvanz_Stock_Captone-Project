@@ -16,6 +16,7 @@ class Category(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=200)
     sku = models.CharField(max_length=50, unique=True)
+    image = models.ImageField(upload_to="products/", blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
     unit = models.CharField(max_length=20, default="pcs")
     cost_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)

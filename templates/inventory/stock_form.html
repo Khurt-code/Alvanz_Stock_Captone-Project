@@ -2,6 +2,10 @@
 {% block title %}Record Stock Movement{% endblock %}
 {% block content %}
 <div class="max-w-xl">
+  <a href="{% url 'stock_transaction_list' %}" class="btn-secondary mb-4 inline-flex items-center gap-2">
+    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+    Back to Stock
+  </a>
   <h1 class="text-2xl font-bold mb-2">Record Stock Movement</h1>
   <p class="text-slate-500 mb-6">Stock in adds to inventory; stock out and adjustments subtract from it.</p>
   <form method="post" class="card p-6 space-y-4">

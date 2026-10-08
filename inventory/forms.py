@@ -6,10 +6,11 @@ from inventory.models import Product, StockTransaction
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ["name", "sku", "category", "unit", "cost_price", "sell_price", "min_stock_level", "is_active"]
+        fields = ["name", "sku", "image", "category", "unit", "cost_price", "sell_price", "min_stock_level", "is_active"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "input", "placeholder": "e.g. Portland Cement 40kg"}),
             "sku": forms.TextInput(attrs={"class": "input", "placeholder": "e.g. CEM-40KG"}),
+            "image": forms.ClearableFileInput(attrs={"class": "input", "accept": "image/*"}),
             "unit": forms.TextInput(attrs={"class": "input", "placeholder": "e.g. pcs, bag, liter"}),
             "category": forms.Select(attrs={"class": "input"}),
             "cost_price": forms.NumberInput(attrs={"class": "input", "step": "0.01"}),

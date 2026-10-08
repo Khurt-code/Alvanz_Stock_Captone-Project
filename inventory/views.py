@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Count, F, Q, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -60,7 +61,7 @@ def product_list(request):
 @login_required
 def product_create(request):
     if request.method == "POST":
-        form = ProductForm(request.POST)
+        form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save()
             messages.success(request, f"Product '{product.name}' created.")
@@ -74,7 +75,7 @@ def product_create(request):
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == "POST":
-        form = ProductForm(request.POST, instance=product)
+        form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
             messages.success(request, "Product updated.")
@@ -173,3 +174,27 @@ def low_stock(request):
         .order_by("quantity")
     )
     return render(request, "inventory/low_stock.html", {"products": products})
+
+
+@login_required
+def real_time_stock(request):
+    return render(request, "inventory/real_time_stock.html")
+
+
+@login_required
+def real_time_stock_data(request):
+    products = Product.objects.filter(is_active=True).select_related("category").order_by("name")
+    rows = [
+        {
+            "name": product.name,
+            "sku": product.sku,
+            "category": product.category.name if product.category else "Uncategorized",
+            "quantity": product.quantity,
+            "unit": product.unit,
+            "min_stock_level": product.min_stock_level,
+            "is_low_stock": product.is_low_stock,
+            "updated_at": product.updated_at,
+        }
+        for product in products
+    ]
+    return JsonResponse({"products": rows})

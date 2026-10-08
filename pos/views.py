@@ -122,15 +122,23 @@ def sales_list(request):
 
 @manager_required
 def sales_report(request):
-    period = request.GET.get("period", "today")
-    now = timezone.now()
-    date_ranges = {
-        "today": (now.date(), now.date()),
-        "week": (now.date() - timedelta(days=6), now.date()),
-        "month": (now.date().replace(day=1), now.date()),
-    }
-    start, end = date_ranges.get(period, date_ranges["today"])
-    sales = Sale.objects.filter(created_at__date__gte=start, created_at__date__lte=end)
+    raw_days = request.GET.get("days", "1").strip() or "1"
+    invalid_days = False
+    try:
+        days = int(raw_days)
+        if not 1 <= days <= 365:
+            raise ValueError
+    except ValueError:
+        days = 1
+        invalid_days = True
+
+    end = timezone.localdate()
+    start = end - timedelta(days=days - 1)
+    sales = (
+        Sale.objects.select_related("cashier")
+        .filter(created_at__date__gte=start, created_at__date__lte=end)
+        .order_by("-created_at")
+    )
     summary = sales.aggregate(
         total=Sum("total"),
         subtotal=Sum("subtotal"),
@@ -148,13 +156,13 @@ def sales_report(request):
         request,
         "reports/sales_report.html",
         {
-"period": period,
-        "start": start,
-        "end": end,
-        "periods": [("Today", "today"), ("Last 7 Days", "week"), ("This Month", "month")],
+            "days": days,
+            "invalid_days": invalid_days,
+            "start": start,
+            "end": end,
         "summary": summary,
             "daily_sales": daily_sales,
-            "sales": sales[:50],
+            "sales": sales,
         },
     )
 

@@ -18,8 +18,19 @@
                 class="pos-item text-left card p-3 hover:border-amber-400 hover:shadow-md transition cursor-pointer {% if p.is_low_stock %}opacity-70{% endif %}"
                 data-id="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ p.sell_price }}" data-stock="{{ p.quantity }}"
                 {% if p.quantity == 0 %}disabled{% endif %}>
-          <div class="text-sm font-semibold truncate">{{ p.name }}</div>
-          <div class="text-xs text-slate-500 mt-0.5">₱{{ p.sell_price|floatformat:2 }}</div>
+          <div class="flex items-center gap-3">
+            {% if p.image %}
+            <img src="{{ p.image.url }}" alt="" loading="lazy" class="h-12 w-12 shrink-0 rounded-md border border-slate-200 object-cover" aria-hidden="true">
+            {% else %}
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-400" aria-hidden="true">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75A2.25 2.25 0 016 4.5h12a2.25 2.25 0 012.25 2.25v10.5A2.25 2.25 0 0118 19.5H6a2.25 2.25 0 01-2.25-2.25V6.75z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 10.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM20.25 15l-4.5-4.5L6 19.5"/></svg>
+            </div>
+            {% endif %}
+            <div class="min-w-0">
+              <div class="text-sm font-semibold truncate">{{ p.name }}</div>
+              <div class="text-xs text-slate-500 mt-0.5">₱{{ p.sell_price|floatformat:2 }}</div>
+            </div>
+          </div>
           <div class="mt-2 text-xs font-medium {% if p.is_low_stock %}text-red-600{% else %}text-slate-400{% endif %}">
             {% if p.quantity == 0 %}Out of stock{% else %}{{ p.quantity }} in stock{% endif %}
           </div>

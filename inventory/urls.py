@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("low-stock/", views.low_stock, name="low_stock"),
+    path("real-time-stock/", views.real_time_stock, name="real_time_stock"),
+    path("real-time-stock/data/", views.real_time_stock_data, name="real_time_stock_data"),
     # Products
     path("products/", views.product_list, name="product_list"),
     path("products/new/", views.product_create, name="product_create"),

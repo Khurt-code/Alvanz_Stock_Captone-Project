@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Live Stock{% endblock %}
+
+{% block content %}
+  <div class="space-y-6" data-stock-url="{% url 'real_time_stock_data' %}">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">Inventory monitor</p>
+        <h1 class="mt-1 text-3xl font-bold text-slate-900">Live stock</h1>
+        <p class="mt-2 text-sm text-slate-600">Current quantities for all active products.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="flex items-center gap-2 text-sm text-slate-600">
+          <span id="stock-status-dot" class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
+          <span id="stock-status" role="status" aria-live="polite">Connecting...</span>
+        </span>
+        <button id="stock-refresh" type="button" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Refresh</button>
+      </div>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-3">
+      <div class="rounded-md border border-slate-200 bg-white p-4">
+        <p class="text-sm text-slate-500">Active products</p>
+        <p id="stock-product-count" class="mt-1 text-2xl font-semibold">--</p>
+      </div>
+      <div class="rounded-md border border-slate-200 bg-white p-4">
+        <p class="text-sm text-slate-500">Units in stock</p>
+        <p id="stock-unit-count" class="mt-1 text-2xl font-semibold">--</p>
+      </div>
+      <div class="rounded-md border border-slate-200 bg-white p-4">
+        <p class="text-sm text-slate-500">Low-stock products</p>
+        <p id="stock-low-count" class="mt-1 text-2xl font-semibold text-amber-700">--</p>
+      </div>
+    </div>
+
+    <div class="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <div class="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="font-semibold text-slate-900">Product quantities</h2>
+        <label class="sr-only" for="stock-search">Search products</label>
+        <input id="stock-search" type="search" placeholder="Search name or SKU" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm sm:max-w-xs">
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+          <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+            <tr>
+              <th class="px-4 py-3 font-semibold">Product</th>
+              <th class="px-4 py-3 font-semibold">SKU</th>
+              <th class="px-4 py-3 font-semibold">Category</th>
+              <th class="px-4 py-3 text-right font-semibold">Quantity</th>
+              <th class="px-4 py-3 text-right font-semibold">Minimum</th>
+              <th class="px-4 py-3 font-semibold">Status</th>
+            </tr>
+          </thead>
+          <tbody id="stock-table-body" class="divide-y divide-slate-100">
+            <tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Loading stock...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex flex-col gap-1 border-t border-slate-200 px-4 py-3 text-xs text-slate-500 sm:flex-row sm:justify-between">
+        <span id="stock-result-count">Waiting for stock data</span>
+        <span>Updated <time id="stock-updated-at">--</time></span>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const page = document.querySelector("[data-stock-url]");
+    const tableBody = document.getElementById("stock-table-body");
+    const searchInput = document.getElementById("stock-search");
+    const status = document.getElementById("stock-status");
+    const statusDot = document.getElementById("stock-status-dot");
+    let products = [];
+
+    function renderProducts() {
+      const query = searchInput.value.trim().toLowerCase();
+      const visibleProducts = products.filter((product) =>
+        `${product.name} ${product.sku}`.toLowerCase().includes(query)
+      );
+      tableBody.replaceChildren();
+
+      if (visibleProducts.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 6;
+        cell.className = "px-4 py-8 text-center text-slate-500";
+        cell.textContent = products.length ? "No matching products." : "No active products found.";
+        row.append(cell);
+        tableBody.append(row);
+      }
+
+      for (const product of visibleProducts) {
+        const row = document.createElement("tr");
+        const values = [product.name, product.sku, product.category];
+        for (const value of values) {
+          const cell = document.createElement("td");
+          cell.className = "px-4 py-3 text-slate-700";
+          cell.textContent = value;
+          row.append(cell);
+        }
+
+        const quantityCell = document.createElement("td");
+        quantityCell.className = "px-4 py-3 text-right font-semibold text-slate-900";
+        quantityCell.textContent = `${product.quantity} ${product.unit}`;
+        row.append(quantityCell);
+
+        const minimumCell = document.createElement("td");
+        minimumCell.className = "px-4 py-3 text-right text-slate-600";
+        minimumCell.textContent = `${product.min_stock_level} ${product.unit}`;
+        row.append(minimumCell);
+
+        const stateCell = document.createElement("td");
+        stateCell.className = "px-4 py-3";
+        const badge = document.createElement("span");
+        badge.className = product.is_low_stock
+          ? "inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800"
+          : "inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800";
+        badge.textContent = product.is_low_stock ? "Low stock" : "In stock";
+        stateCell.append(badge);
+        row.append(stateCell);
+        tableBody.append(row);
+      }
+
+      document.getElementById("stock-result-count").textContent =
+        `${visibleProducts.length} of ${products.length} products`;
+    }
+
+    async function refreshStock() {
+      try {
+        const response = await fetch(page.dataset.stockUrl, { headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("Stock request failed");
+        const data = await response.json();
+        products = data.products;
+        renderProducts();
+
+        document.getElementById("stock-product-count").textContent = products.length;
+        document.getElementById("stock-unit-count").textContent = products.reduce(
+          (total, product) => total + product.quantity, 0
+        ).toLocaleString();
+        document.getElementById("stock-low-count").textContent = products.filter(
+          (product) => product.is_low_stock
+        ).length;
+        document.getElementById("stock-updated-at").textContent = new Date().toLocaleTimeString();
+        status.textContent = "Live · refreshes every 5 seconds";
+        statusDot.className = "h-2.5 w-2.5 rounded-full bg-emerald-500";
+      } catch (error) {
+        status.textContent = "Connection lost · retrying";
+        statusDot.className = "h-2.5 w-2.5 rounded-full bg-red-500";
+      }
+    }
+
+    searchInput.addEventListener("input", renderProducts);
+    document.getElementById("stock-refresh").addEventListener("click", refreshStock);
+    refreshStock();
+    window.setInterval(refreshStock, 5000);
+  })();
+</script>
+{% endblock %}
