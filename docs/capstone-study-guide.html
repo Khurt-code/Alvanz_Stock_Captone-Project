@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AlvanzStock Capstone Study Guide</title>
+<style>
+  :root { --ink: #18252c; --muted: #5c6b70; --teal: #126b68; --amber: #e9a82c; --line: #d9e1df; --soft: #f1f6f4; --paper: #fff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e8eeec; color: var(--ink); font: 15px/1.58 "DejaVu Sans", "Segoe UI", sans-serif; }
+  main { max-width: 920px; margin: 28px auto; padding: 54px 64px; background: var(--paper); box-shadow: 0 12px 40px #192a2a1c; }
+  h1, h2, h3, h4 { color: #173d43; line-height: 1.2; }
+  h1 { font-size: 32px; margin: 0 0 14px; }
+  h2 { font-size: 23px; border-bottom: 2px solid var(--amber); padding-bottom: 8px; margin: 42px 0 16px; break-after: avoid; }
+  h3 { font-size: 17px; margin: 26px 0 9px; break-after: avoid; }
+  h4 { font-size: 14px; margin: 18px 0 6px; }
+  p { margin: 8px 0 12px; }
+  a { color: var(--teal); }
+  code, pre { font-family: "DejaVu Sans Mono", "Liberation Mono", monospace; }
+  code { font-size: .9em; color: #134f4b; background: #edf4f2; padding: 1px 4px; border-radius: 3px; overflow-wrap: anywhere; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #16272b; color: #f1f6f4; padding: 14px 16px; border-radius: 5px; font-size: 11px; line-height: 1.5; break-inside: avoid; }
+  pre code { color: inherit; background: transparent; padding: 0; }
+  ul, ol { margin: 7px 0 15px; padding-left: 24px; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 12px; break-inside: auto; }
+  th { background: #eaf2ef; color: #173d43; text-align: left; }
+  th, td { border: 1px solid var(--line); padding: 7px 9px; vertical-align: top; }
+  tr { break-inside: avoid; }
+  .cover { min-height: 760px; display: flex; flex-direction: column; justify-content: space-between; background: #183a40; color: #f7faf8; padding: 46px; margin: -54px -64px 42px; }
+  .cover h1 { color: white; font-size: 42px; max-width: 620px; margin-top: 24px; }
+  .cover p { color: #d8e7e2; max-width: 630px; }
+  .eyebrow { text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; color: #ffd47c !important; }
+  .cover-mark { width: 50px; height: 6px; background: var(--amber); margin: 28px 0; }
+  .cover-meta { border-top: 1px solid #ffffff50; padding-top: 16px; font-size: 12px; }
+  .callout { border-left: 4px solid var(--teal); background: var(--soft); padding: 12px 15px; margin: 14px 0 18px; break-inside: avoid; }
+  .warning { border-left-color: #c27d13; background: #fff6e4; }
+  .small { font-size: 12px; color: var(--muted); }
+  .toc { columns: 2; padding-left: 21px; }
+  .toc li { break-inside: avoid; }
+  .flow { background: #eff5f3; border: 1px solid var(--line); padding: 12px; text-align: center; font-weight: 700; color: var(--teal); margin: 14px 0; break-inside: avoid; }
+  .page-break { break-before: page; }
+  .checklist li { list-style: "□  "; padding-left: 4px; }
+  .footer-note { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 12px; font-size: 11px; color: var(--muted); }
+  @page { size: A4; margin: 15mm 15mm 17mm; @bottom-left { content: "AlvanzStock • Capstone Study Guide"; color: #657478; font: 8pt "DejaVu Sans", sans-serif; } @bottom-right { content: "Page " counter(page); color: #657478; font: 8pt "DejaVu Sans", sans-serif; } }
+  @media print {
+    body { background: white; font-size: 10pt; line-height: 1.48; }
+    main { max-width: none; margin: 0; padding: 0; box-shadow: none; }
+    h2 { margin-top: 28px; }
+    .cover { min-height: 255mm; margin: -15mm; padding: 24mm 19mm; break-after: page; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    th, .callout, .flow, pre { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <section class="cover">
+    <div>
+      <p class="eyebrow">Capstone defense field guide</p>
+      <div class="cover-mark"></div>
+      <h1>AlvanzStock</h1>
+      <h2 style="color:#d8e7e2;border:0;font-size:25px;margin:0">System Navigation, Code Changes &amp; Debugging</h2>
+      <p>A hands-on study guide for understanding the application, explaining its design, and confidently making a small change while an instructor watches.</p>
+    </div>
+    <div class="cover-meta">Django 6.1 · Python · SQLite · Tailwind CSS · Vanilla JavaScript<br>Prepared from the current project source · October 2026</div>
+  </section>
+
+  <h2 id="using">How to use this guide</h2>
+  <p>This is a map and a practice manual, not a line-by-line copy of the source. Learn the request flow and the few ownership rules first. When asked to change something, use the checklists and trace the behavior from the browser to the responsible view, model, and template.</p>
+  <div class="callout"><strong>Defense habit:</strong> say what behavior you intend to change, identify the owning file, make one focused edit, then prove it with a test or a reproducible browser check. Do not start editing until you can describe the expected result.</div>
+  <h3>Contents</h3>
+  <ol class="toc">
+    <li><a href="#quickstart">Start and run the system</a></li>
+    <li><a href="#architecture">How a request travels</a></li>
+    <li><a href="#navigation">Pages and access by role</a></li>
+    <li><a href="#data">Data model and stock rules</a></li>
+    <li><a href="#workflows">Important workflows</a></li>
+    <li><a href="#change">How to change the code</a></li>
+    <li><a href="#debug">Debugging playbook</a></li>
+    <li><a href="#tests">Testing and verification</a></li>
+    <li><a href="#defense">Defense rehearsal and questions</a></li>
+    <li><a href="#limits">Caveats and production safety</a></li>
+  </ol>
+
+  <h2 id="quickstart">1. Start and run the system</h2>
+  <p>Run commands from the project root, the folder containing <code>manage.py</code>. This repository has a local virtual environment named <code>venv</code>.</p>
+  <pre><code># Install/update Python dependencies
+./venv/bin/pip install -r requirements.txt
+
+# Apply database migrations
+./venv/bin/python manage.py migrate
+
+# Optional demo users and sample products/sales
+./venv/bin/python manage.py seed_data
+
+# Install frontend build dependencies once, then compile CSS
+npm install
+npm run build:css
+
+# Start the local site
+./venv/bin/python manage.py runserver 127.0.0.1:8000</code></pre>
+  <p>Open <code>http://127.0.0.1:8000/</code>. Stop the development server with <code>Ctrl+C</code>. If you change template classes, rebuild Tailwind with <code>npm run build:css</code>; the browser uses <code>static/css/output.css</code>, not the Tailwind source config directly.</p>
+  <p>The optional seed command creates demo accounts if absent: <code>admin / admin123</code>, <code>cashier / cashier123</code>, and <code>staff / staff123</code>. Those credentials are for local demonstrations only. Seeded categories prevent the command from reseeding demo inventory/sales on later runs.</p>
+  <div class="callout warning"><strong>Do not confuse environments:</strong> <code>db.sqlite3</code> is the development database. Django tests create a separate temporary test database and destroy it afterward. A successful test run does not create or delete your demo data.</div>
+
+  <h2 id="architecture">2. How a request travels</h2>
+  <div class="flow">Browser URL → root URL configuration → app URL → view → model/query → template or JSON → browser</div>
+  <ul>
+    <li><code>alvanzstock/urls.py</code> is the top-level router. It includes account, inventory, and POS URLs.</li>
+    <li><code>inventory/urls.py</code> and <code>pos/urls.py</code> map paths to functions in their app’s <code>views.py</code>.</li>
+    <li>A view checks access, reads input, asks models for data or saves changes, then renders a template or returns JSON.</li>
+    <li>Templates in <code>templates/</code> create the HTML. Most extend <code>templates/base.html</code>, which provides the shared layout and navigation.</li>
+    <li>POS interactions use ordinary HTML plus JavaScript in <code>templates/pos/pos_screen.html</code>. Checkout posts JSON to a Django view.</li>
+    <li>Models define database fields and important behavior. Migrations translate model changes into database changes.</li>
+  </ul>
+  <p>Example: opening <code>/stock/new/</code> matches <code>inventory/urls.py</code>, invokes <code>stock_transaction_create</code>, validates <code>StockTransactionForm</code>, saves the transaction and user, then renders <code>templates/inventory/stock_form.html</code>. A valid submission redirects to the affected product detail page.</p>
+
+  <h2 id="navigation">3. Pages and access by role</h2>
+  <table>
+    <thead><tr><th>Page or action</th><th>Route</th><th>Owner</th><th>Access</th></tr></thead>
+    <tbody>
+      <tr><td>Dashboard</td><td><code>/</code></td><td><code>inventory/views.py: dashboard</code></td><td>Signed-in users; Stock Viewer is redirected to Live Stock.</td></tr>
+      <tr><td>Products</td><td><code>/products/</code></td><td><code>inventory/views.py: product_list</code></td><td>Signed-in users.</td></tr>
+      <tr><td>Add / edit product</td><td><code>/products/new/</code>, <code>/products/&lt;id&gt;/edit/</code></td><td><code>inventory/views.py</code>, <code>ProductForm</code></td><td>Signed-in users.</td></tr>
+      <tr><td>Categories</td><td><code>/categories/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users.</td></tr>
+      <tr><td>Stock movement history / new movement</td><td><code>/stock/</code>, <code>/stock/new/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users.</td></tr>
+      <tr><td>Low-stock alerts</td><td><code>/low-stock/</code></td><td><code>inventory/views.py: low_stock</code></td><td>Signed-in users.</td></tr>
+      <tr><td>Live stock and JSON feed</td><td><code>/real-time-stock/</code>, <code>/real-time-stock/data/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users; Stock Viewer is allowed.</td></tr>
+      <tr><td>POS and checkout</td><td><code>/pos/</code>, <code>/pos/checkout/</code></td><td><code>pos/views.py</code></td><td>Signed-in users except Stock Viewer.</td></tr>
+      <tr><td>Receipt</td><td><code>/receipt/&lt;id&gt;/</code></td><td><code>pos/views.py: sale_receipt</code></td><td>Signed-in users except Stock Viewer.</td></tr>
+      <tr><td>Sales history and reports</td><td><code>/sales/</code>, <code>/reports/sales/</code>, <code>/reports/inventory/</code></td><td><code>pos/views.py</code></td><td>Manager role.</td></tr>
+      <tr><td>Django admin</td><td><code>/admin/</code></td><td><code>accounts/admin.py</code>, app admin files</td><td>Requires Django admin staff/superuser permission.</td></tr>
+    </tbody>
+  </table>
+  <h3>Roles and where restrictions live</h3>
+  <ul>
+    <li><strong>Manager:</strong> <code>User.is_manager</code> is true; can use sales and report views protected by <code>manager_required</code>.</li>
+    <li><strong>Cashier:</strong> can use POS and regular signed-in pages; is not a manager.</li>
+    <li><strong>Staff:</strong> signed-in inventory pages; is not a manager.</li>
+    <li><strong>Stock Viewer:</strong> sees only Live Stock and logout in navigation. <code>accounts/middleware.py</code> also redirects direct requests to other view names, so hiding links is not the only security control.</li>
+  </ul>
+  <p>Create users at <code>/admin/</code>. Choosing the Stock Viewer role does not automatically make a user an admin. Admin access is separately controlled by <code>is_staff</code> and permissions.</p>
+
+  <h2 id="data">4. Data model and stock rules</h2>
+  <table>
+    <thead><tr><th>Model</th><th>Purpose</th><th>Important fields / relationship</th></tr></thead>
+    <tbody>
+      <tr><td><code>User</code></td><td>Authentication and role.</td><td><code>role</code>; custom model in <code>accounts/models.py</code>.</td></tr>
+      <tr><td><code>Category</code></td><td>Groups products.</td><td><code>name</code>; a product may have no category.</td></tr>
+      <tr><td><code>Product</code></td><td>Current catalog and stock count.</td><td><code>sku</code>, <code>image</code>, prices, <code>quantity</code>, <code>min_stock_level</code>, <code>is_active</code>.</td></tr>
+      <tr><td><code>StockTransaction</code></td><td>Records a stock movement.</td><td>Product, type, quantity, reference, user, timestamp.</td></tr>
+      <tr><td><code>Sale</code></td><td>One checkout/receipt.</td><td>Cashier, subtotal, discount, total, tender, change, receipt number.</td></tr>
+      <tr><td><code>SaleItem</code></td><td>Products and quantities within a sale.</td><td>Sale, product, quantity, unit price, line subtotal.</td></tr>
+    </tbody>
+  </table>
+  <h3>The stock invariant</h3>
+  <p><code>Product.quantity</code> is the current count displayed to users. A new <code>StockTransaction</code> updates it in <code>StockTransaction.save()</code>; deleting a transaction calls <code>reverse_stock()</code>. A POS sale creates stock-out transactions, so the same stock mechanism updates inventory from checkout.</p>
+  <ul>
+    <li>Stock In adds the movement quantity.</li>
+    <li>Stock Out subtracts it and clamps at zero in the model.</li>
+    <li><code>is_low_stock</code> means <code>quantity &lt;= min_stock_level</code>.</li>
+    <li>The current implementation treats every non-IN movement, including ADJUST, as subtracting stock. If asked for positive and negative adjustments, clarify the rules and update both apply and reverse behavior plus tests.</li>
+  </ul>
+  <div class="callout warning"><strong>Audit point:</strong> the product admin currently allows editing <code>quantity</code> directly. Direct edits do not create a StockTransaction, so they can make the count and movement history disagree. A more auditable design would make quantity read-only in admin and require a transaction/adjustment.</div>
+
+  <h2 id="workflows">5. Important workflows</h2>
+  <h3>Product images</h3>
+  <ol>
+    <li><code>Product.image</code> is an optional Django <code>ImageField</code> saved under <code>media/products/</code>. Pillow validates image files.</li>
+    <li><code>ProductForm</code> includes the image field.</li>
+    <li><code>templates/inventory/product_form.html</code> uses multipart encoding; create/edit views pass <code>request.FILES</code>.</li>
+    <li>In development, <code>MEDIA_ROOT</code> and <code>MEDIA_URL</code> are configured in settings and URL serving is enabled only when <code>DEBUG</code> is true.</li>
+    <li>The POS product grid displays the image when present; otherwise it displays a placeholder. The image URL is passed in a data attribute for the cart.</li>
+  </ol>
+  <h3>Record stock movement</h3>
+  <div class="flow">Form input → StockTransactionForm validation → assign request.user → save transaction → update Product.quantity → redirect to product detail</div>
+  <p>Transaction deletion is a POST-only action. The model reverses the stock effect before deleting the history record. Test both creation and deletion effects when changing this logic.</p>
+  <h3>POS checkout</h3>
+  <div class="flow">Product cards → JavaScript cart → POST JSON → pos_checkout validation → record_sale atomic transaction → Sale + SaleItems + stock-out transactions → receipt</div>
+  <p>The browser computes totals for usability, but <code>pos_checkout</code> checks quantities, discount, tendered cash, and the cash multiplier again on the server. The model helper <code>record_sale()</code> wraps sale, items, and stock movements in a database transaction; if part fails, the database transaction can roll back.</p>
+  <h3>Live stock</h3>
+  <p>The page polls <code>/real-time-stock/data/</code> every five seconds. The authenticated JSON view queries active products and returns quantity, unit, threshold, category, and low-stock status. It is periodic refresh, not a WebSocket push stream.</p>
+  <h3>Sales reporting</h3>
+  <p>The manager-only sales report defaults to one day (today), accepts <code>?days=N</code> for 1–365 days, and includes both boundary dates. Print Report invokes the browser print dialog; print CSS hides controls and app navigation. The sales list also supports date filters.</p>
+
+  <h2 id="change">6. How to change the code</h2>
+  <h3>Use this change checklist</h3>
+  <ol>
+    <li>Restate the requested behavior as an observable result. Ask about edge cases before guessing.</li>
+    <li>Find the owning route and view. Search the URL name or visible text, then follow the URL → view → template path.</li>
+    <li>Decide which layer owns the change: template/layout, form validation, view/query, model/data, role enforcement, or JavaScript interaction.</li>
+    <li>Make the smallest focused edit. If a model field changes, generate and review a migration.</li>
+    <li>Run the narrow test first. Then run relevant checks and manually verify the browser workflow.</li>
+    <li>Explain the files changed and evidence that the behavior works.</li>
+  </ol>
+  <h3>Example A: add search by SKU in POS</h3>
+  <ol>
+    <li>In <code>templates/pos/pos_screen.html</code>, add <code>data-sku="{{ p.sku }}"</code> to each product button.</li>
+    <li>In the search input handler, match the lowercase query against both <code>btn.dataset.name</code> and <code>btn.dataset.sku</code>.</li>
+    <li>Verify exact and partial SKU matching, mixed case, and a query with no results.</li>
+    <li>Keep checkout validation in <code>pos/views.py</code>; browser search must not become a security or stock validation control.</li>
+  </ol>
+  <h3>Example B: add a new page</h3>
+  <ol>
+    <li>Add a view to the owning app, usually protected with <code>@login_required</code>.</li>
+    <li>Add a named path in that app’s <code>urls.py</code>.</li>
+    <li>Create a template under <code>templates/</code>, usually extending <code>base.html</code> and defining <code>title</code> and <code>content</code>.</li>
+    <li>Add desktop/mobile navigation links in <code>templates/base.html</code> if users should discover it.</li>
+    <li>If the Stock Viewer must not access it, review <code>allowed_view_names</code> in <code>accounts/middleware.py</code>; the middleware currently redirects every view not explicitly allowed.</li>
+  </ol>
+  <h3>Example C: add or change a database field</h3>
+  <ol>
+    <li>Change the model in the app’s <code>models.py</code>.</li>
+    <li>Expose it through the correct ModelForm and template. For a file upload, include multipart encoding and pass <code>request.FILES</code>.</li>
+    <li>Run <code>venv/bin/python manage.py makemigrations</code> and inspect the generated migration.</li>
+    <li>Run <code>venv/bin/python manage.py migrate</code>.</li>
+    <li>Write a test for valid input, invalid input, and the rendered/useful output.</li>
+  </ol>
+  <h3>Example D: change low-stock behavior</h3>
+  <p>Current condition: <code>quantity &lt;= min_stock_level</code>. First clarify whether equality should trigger the alert. Update the central product property and any database query that duplicates this rule (dashboard and low-stock view), then test one product below, exactly at, and above its minimum. Centralizing the rule reduces inconsistent badges and reports.</p>
+
+  <h2 id="debug">7. Debugging playbook</h2>
+  <h3>Trace it from the symptom</h3>
+  <ol>
+    <li><strong>Reproduce:</strong> write down the URL, role, inputs, actual result, expected result, and exact error text.</li>
+    <li><strong>Find the route:</strong> inspect <code>alvanzstock/urls.py</code>, then the app URL file.</li>
+    <li><strong>Follow the data:</strong> view → form/query/model → template or JSON → browser JavaScript.</li>
+    <li><strong>Use both consoles:</strong> Django traceback in the terminal; browser Console and Network tabs for JavaScript, redirects, and missing assets.</li>
+    <li><strong>Check one layer at a time:</strong> Is the route matched? Is the view reached? Does the query return data? Does the HTML contain it? Does the browser render it?</li>
+    <li><strong>Make a minimal correction, rerun the narrow test, then regression tests.</strong></li>
+  </ol>
+  <table>
+    <thead><tr><th>Symptom</th><th>Check first</th></tr></thead>
+    <tbody>
+      <tr><td>404 after adding a page</td><td>Is the app URL included at the project level? Is the route spelled and named correctly?</td></tr>
+      <tr><td>TemplateDoesNotExist</td><td>Does the template path passed to <code>render()</code> match its location under <code>templates/</code>?</td></tr>
+      <tr><td>New Tailwind class has no effect</td><td>Run <code>npm run build:css</code>, confirm the template is scanned, then hard-refresh the browser.</td></tr>
+      <tr><td>Image missing after submit</td><td>Check the form has <code>enctype="multipart/form-data"</code>, the view passes <code>request.FILES</code>, validation errors, and that the image file exists under MEDIA_ROOT.</td></tr>
+      <tr><td>Image URL is 404 locally</td><td>Check MEDIA_URL/MEDIA_ROOT and the DEBUG-only media route in <code>alvanzstock/urls.py</code>. Production needs separate media hosting.</td></tr>
+      <tr><td>Stock Viewer is redirected</td><td>Check the user’s role and <code>allowed_view_names</code> in <code>accounts/middleware.py</code>. Being absent from the menu is not the same as being allowed.</td></tr>
+      <tr><td>Stock number is wrong</td><td>Inspect the transaction type, quantity, save/delete path, and whether someone edited Product.quantity directly in admin.</td></tr>
+      <tr><td>Checkout rejects the cart</td><td>Read the JSON response in Network tools and check current database stock, discount ≤ subtotal, cash ≥ total, and configured cash multiplier.</td></tr>
+      <tr><td>“No changes detected” after model edit</td><td>Confirm the model was saved and belongs to an installed app. Review existing migrations before trying to force a schema change.</td></tr>
+      <tr><td>New import fails locally</td><td>Install dependencies into the project venv with <code>venv/bin/pip install -r requirements.txt</code>; use the same interpreter to run Django.</td></tr>
+    </tbody>
+  </table>
+  <h3>Example: image upload says success but POS shows a placeholder</h3>
+  <ol>
+    <li>Open the product edit page. Does it show the saved-image preview?</li>
+    <li>Inspect the rendered POS product button. Does its <code>data-image</code> value contain a URL?</li>
+    <li>Open that URL directly. A 404 points to media storage/serving; no URL points to form/view/model persistence; a valid URL but missing cart thumbnail points to JavaScript data/rendering.</li>
+  </ol>
+
+  <h2 id="tests">8. Testing and verification</h2>
+  <pre><code># All tests
+venv/bin/python manage.py test
+
+# Focused examples
+venv/bin/python manage.py test inventory.tests.ProductImageUploadTests
+venv/bin/python manage.py test accounts.tests.StockViewerAccessTests
+venv/bin/python manage.py test pos.tests.SalesReportTests
+
+# Django settings and URL/template checks
+venv/bin/python manage.py check
+
+# Verify model/migration agreement
+venv/bin/python manage.py makemigrations --check --dry-run
+
+# Apply migrations
+venv/bin/python manage.py migrate</code></pre>
+  <p>Tests use Django’s test client to request routes and inspect status, redirects, page content, context, and stored objects. Image tests can construct a small in-memory PNG with Pillow and a <code>SimpleUploadedFile</code>. Good tests verify outcomes, not merely that a view returns 200.</p>
+  <p>For manual browser verification, use one action per test: upload an image, view the product, open POS, add it to the cart, verify its thumbnail, then checkout with valid and invalid values. Use a Manager and Stock Viewer account separately when verifying permissions.</p>
+
+  <h2 id="defense">9. Defense rehearsal and likely questions</h2>
+  <h3>A short live demonstration</h3>
+  <ol>
+    <li>Log in as a Manager and show product inventory and the stock threshold.</li>
+    <li>Edit a product and upload a photo; show its preview and POS card.</li>
+    <li>Open Record Stock Movement, record a stock-in, and show the quantity change.</li>
+    <li>Open Live Stock and explain the five-second JSON polling.</li>
+    <li>Open POS, add the pictured item, show the cart thumbnail, and explain browser-side totals versus server-side validation.</li>
+    <li>Complete a sale, print the receipt, and point out the Sale, SaleItem, and stock-out records.</li>
+    <li>Open the sales report, choose a day range, print it, then show the Stock Viewer’s restricted navigation and route behavior.</li>
+    <li>Finish with one test command and its result.</li>
+  </ol>
+  <h3>Questions to practice answering</h3>
+  <table>
+    <thead><tr><th>Question</th><th>Answer outline</th></tr></thead>
+    <tbody>
+      <tr><td>How does checkout update inventory?</td><td>The server validates the submitted cart; <code>record_sale()</code> atomically creates the sale and items and records stock-out transactions. The transaction model applies those movements to Product.quantity.</td></tr>
+      <tr><td>Why validate on the server if JavaScript already checks?</td><td>Browser state can be modified or stale. Server checks are authoritative for inventory, discount, and payment.</td></tr>
+      <tr><td>What makes the stock page “real time”?</td><td>It fetches current server data every five seconds. It is polling, not instantaneous push; WebSockets would be a future option for lower latency.</td></tr>
+      <tr><td>How do permissions work?</td><td>Authentication decorators require sign-in, manager views use <code>manager_required</code>, and StockViewerAccessMiddleware allows only the stock page/data and logout. Django admin also checks staff permissions.</td></tr>
+      <tr><td>How are uploaded photos stored?</td><td>The database stores a file path in an ImageField; the image file is stored separately under MEDIA_ROOT. Development URL serving is enabled only in DEBUG.</td></tr>
+      <tr><td>Why are migrations important?</td><td>The model is Python’s schema declaration; migrations version and apply schema changes to the database without manually editing SQLite.</td></tr>
+      <tr><td>What would you improve next?</td><td>Examples: stronger stock adjustment semantics and audit trail, automated UI tests, production media storage, environment-based secrets, and pagination/monitoring for larger datasets.</td></tr>
+      <tr><td>How do you know a change didn’t break another feature?</td><td>Run the focused test, the full suite, Django checks, and manually verify the affected user workflow and role boundaries.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><strong>When surprised by a change request:</strong> ask for the intended result and edge cases. Repeat your understanding, identify the owning layer, make a small change, and demonstrate the test. It is acceptable to state an assumption before proceeding.</div>
+
+  <h2 id="limits">10. Caveats and production safety</h2>
+  <ul>
+    <li><code>settings.py</code> currently has <code>DEBUG = True</code> and a hardcoded development secret. These are not production settings. Use environment variables, set DEBUG false, and configure allowed hosts before deployment.</li>
+    <li>Uploaded media is served by Django’s development helper only while DEBUG is enabled. A production deployment needs durable media storage and web-server/CDN delivery.</li>
+    <li>Local demo passwords are intentionally simple and must never be reused in production.</li>
+    <li>The README and project map may describe older behavior. Current source is authoritative: this version includes Stock Viewer, live stock, product image upload, and day-count sales reports.</li>
+    <li>SQLite is suitable for this capstone/local deployment. A multi-user production environment should evaluate a managed database and backup/restore procedures.</li>
+  </ul>
+  <h2>One-minute mental model</h2>
+  <div class="callout">
+    <p><strong>Routes choose views.</strong> Views enforce access and coordinate forms, queries, and responses.</p>
+    <p><strong>Models own data rules.</strong> Migrations carry schema edits to the database.</p>
+    <p><strong>Templates render screens.</strong> JavaScript enhances the POS, but the server validates important business rules.</p>
+    <p><strong>Tests prove behavior.</strong> Follow one workflow from URL to database and back when debugging.</p>
+  </div>
+  <p class="footer-note">Study source: <code>docs/capstone-study-guide.html</code>. Generated PDF: <code>docs/AlvanzStock-Capstone-Study-Guide.pdf</code>. Verify commands and code paths against the current repository if the project changes.</p>
+</main>
+</body>
+</html>
