@@ -3,6 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
 
+# Root router connects account, inventory, POS, admin, and development media URLs.
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),

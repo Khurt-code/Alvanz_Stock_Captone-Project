@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+# Shared user model: role properties are consumed by report guards and stock-viewer middleware.
 class User(AbstractUser):
     class Role(models.TextChoices):
         MANAGER = "manager", "Manager"

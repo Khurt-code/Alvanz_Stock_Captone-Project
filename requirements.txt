@@ -1,2 +1,3 @@
+# Python runtime dependencies: Django runs the app; Pillow validates product ImageField uploads.
 Django==6.1
 Pillow

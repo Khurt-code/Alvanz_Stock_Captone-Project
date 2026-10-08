@@ -1,5 +1,7 @@
 # AlvanzStock — File Map & Components Map
 
+<!-- Reference map connecting URLs, views, templates, models, shared layout, and frontend styles. -->
+
 > How to navigate the codebase and find where each UI component is used.
 
 ## URL → View → Template map

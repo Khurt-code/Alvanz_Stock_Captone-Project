@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 
+# Verifies Stock Viewer middleware and the navigation rendered by the live-stock template.
 class StockViewerAccessTests(TestCase):
 	def setUp(self):
 		user = get_user_model().objects.create_user(

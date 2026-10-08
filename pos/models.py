@@ -1,6 +1,7 @@
 from django.db import models, transaction
 
 
+# Sales data layer; record_sale atomically links Sale/SaleItem records to inventory stock-out transactions.
 class Sale(models.Model):
     receipt_no = models.CharField(max_length=20, unique=True, editable=False)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)

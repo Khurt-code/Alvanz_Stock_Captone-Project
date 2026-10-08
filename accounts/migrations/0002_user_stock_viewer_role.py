@@ -1,3 +1,5 @@
+"""Adds the Stock Viewer choice required by accounts.User and its access middleware."""
+
 from django.db import migrations, models
 
 

@@ -2,6 +2,7 @@ from django.urls import path
 
 from . import views
 
+# Inventory route names connect top-level paths to inventory views and their templates/data.
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("low-stock/", views.low_stock, name="low_stock"),

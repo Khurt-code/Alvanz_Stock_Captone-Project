@@ -1,3 +1,5 @@
+"""Adds Product.image so product forms and POS templates can store and display uploads."""
+
 from django.db import migrations, models
 
 

@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import Sale, SaleItem
 
 
+# Connects sales and their line items to Django Admin for authorized review.
 class SaleItemInline(admin.TabularInline):
     model = SaleItem
     extra = 0

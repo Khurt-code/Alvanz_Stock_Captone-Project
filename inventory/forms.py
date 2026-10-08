@@ -3,6 +3,8 @@ from django import forms
 from inventory.models import Product, StockTransaction
 
 
+# Forms bridge inventory models to create/edit templates and validate submitted fields.
+# Fields used to create or edit a catalog product, including its optional photo.
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
@@ -10,6 +12,7 @@ class ProductForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"class": "input", "placeholder": "e.g. Portland Cement 40kg"}),
             "sku": forms.TextInput(attrs={"class": "input", "placeholder": "e.g. CEM-40KG"}),
+            # accept guides the file picker; ImageField validates the uploaded image.
             "image": forms.ClearableFileInput(attrs={"class": "input", "accept": "image/*"}),
             "unit": forms.TextInput(attrs={"class": "input", "placeholder": "e.g. pcs, bag, liter"}),
             "category": forms.Select(attrs={"class": "input"}),
@@ -19,6 +22,7 @@ class ProductForm(forms.ModelForm):
         }
 
 
+# Captures the label and optional description used to group products.
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = __import__("inventory.models", fromlist=["Category"]).Category
@@ -29,6 +33,7 @@ class CategoryForm(forms.ModelForm):
         }
 
 
+# Records stock movements and prevents outgoing stock from exceeding availability.
 class StockTransactionForm(forms.ModelForm):
     class Meta:
         model = StockTransaction
@@ -46,6 +51,7 @@ class StockTransactionForm(forms.ModelForm):
         product = cleaned.get("product")
         qty = cleaned.get("quantity")
         ttype = cleaned.get("transaction_type")
+        # Stock-in adds inventory; stock-out and adjustment cannot remove unavailable units.
         if product and ttype != StockTransaction.Type.STOCK_IN and qty and qty > product.quantity:
             raise forms.ValidationError(
                 f"Stock out/adjustment of {qty} exceeds current stock ({product.quantity} available)."

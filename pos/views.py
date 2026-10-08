@@ -17,6 +17,7 @@ from inventory.models import Product
 from .models import Sale, record_sale
 
 
+# POS handlers join inventory products to checkout, receipts, and manager-only reporting templates.
 def manager_required(view_func):
     @wraps(view_func)
     @login_required

@@ -12,6 +12,7 @@ from .forms import CategoryForm, ProductForm, StockTransactionForm
 from .models import Category, Product, StockTransaction
 
 
+# Inventory request handlers: routes call these views, which query models and render templates or JSON.
 @login_required
 def dashboard(request):
     low_stock_products = Product.objects.filter(is_active=True, quantity__lte=F("min_stock_level")).order_by("quantity")

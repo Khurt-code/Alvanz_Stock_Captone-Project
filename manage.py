@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+# Loads alvanzstock.settings and dispatches manage.py commands into the Django project.
 import os
 import sys
 

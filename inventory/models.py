@@ -1,6 +1,7 @@
 from django.db import models
 
 
+# Inventory data layer; StockTransaction mutates Product.quantity and is also used by POS sales.
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)

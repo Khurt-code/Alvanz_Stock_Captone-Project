@@ -1,5 +1,7 @@
 # AlvanzStock — Web-Based Inventory & POS System for Alvanz Hardware
 
+<!-- Project entry guide: setup, accounts, frontend build, and high-level app/module connections. -->
+
 A capstone project implementing a web-based inventory management and Point of Sale (POS) system. Built with **Django 6** (Python) and **TailwindCSS**.
 
 ## Features

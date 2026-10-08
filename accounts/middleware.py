@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 
 
+# Restricts Stock Viewer requests centrally; allowed view names must match app URL names.
 class StockViewerAccessMiddleware:
     allowed_view_names = {"real_time_stock", "real_time_stock_data", "logout"}
 

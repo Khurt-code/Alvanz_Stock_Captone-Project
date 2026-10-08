@@ -8,6 +8,7 @@ from inventory.models import Category, Product, StockTransaction
 from pos.models import Sale, SaleItem, record_sale
 
 
+# Demo-data command links account, inventory, and POS models to populate a local database.
 class Command(BaseCommand):
     help = "Seed the database with demo data for Alvanz Hardware."
 

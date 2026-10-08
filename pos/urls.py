@@ -2,6 +2,7 @@ from django.urls import path
 
 from . import views
 
+# POS route names connect checkout, receipts, sales history, and reports to their views.
 urlpatterns = [
     path("pos/", views.pos_screen, name="pos_screen"),
     path("pos/checkout/", views.pos_checkout, name="pos_checkout"),

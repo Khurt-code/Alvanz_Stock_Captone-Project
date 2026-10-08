@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import User
 
+# Extends Django Admin with the custom User role field and Alvanz branding.
 admin.site.site_header = "Alvanz Admin Panel"
 admin.site.site_title = "Alvanz Admin Panel"
 admin.site.index_title = "Alvanz Admin Panel"

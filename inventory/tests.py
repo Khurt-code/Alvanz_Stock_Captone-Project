@@ -10,6 +10,7 @@ from django.urls import reverse
 from .models import Category, Product
 
 
+# Exercises inventory routes and checks product-image uploads render through the POS product data.
 class RealTimeStockTests(TestCase):
 	def setUp(self):
 		user = get_user_model().objects.create_user(username="stock-viewer", password="test-pass")

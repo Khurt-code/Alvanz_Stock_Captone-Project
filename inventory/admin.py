@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import Category, Product, StockTransaction
 
 
+# Connects inventory models to Django Admin, including transaction history on product records.
 class StockTransactionInline(admin.TabularInline):
     model = StockTransaction
     extra = 0

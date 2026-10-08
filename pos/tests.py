@@ -9,6 +9,7 @@ from django.utils import timezone
 from .models import Sale
 
 
+# Verifies manager sales-report views filter Sale records and pass printable report data to templates.
 class SalesReportTests(TestCase):
 	def setUp(self):
 		self.manager = get_user_model().objects.create_user(

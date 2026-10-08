@@ -1,3 +1,4 @@
+/* Tailwind source compiled by npm run build:css into output.css, which base.html loads. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
