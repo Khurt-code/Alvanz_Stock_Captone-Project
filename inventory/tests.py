@@ -86,3 +86,4 @@ class ProductImageUploadTests(TestCase):
 
 		pos_response = self.client.get(reverse("pos_screen"))
 		self.assertContains(pos_response, product.image.url)
+		self.assertContains(pos_response, f'data-image="{product.image.url}"')

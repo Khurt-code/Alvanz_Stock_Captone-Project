@@ -17,6 +17,7 @@
         <button type="button"
                 class="pos-item text-left card p-3 hover:border-amber-400 hover:shadow-md transition cursor-pointer {% if p.is_low_stock %}opacity-70{% endif %}"
                 data-id="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ p.sell_price }}" data-stock="{{ p.quantity }}"
+                data-image="{% if p.image %}{{ p.image.url }}{% endif %}"
                 {% if p.quantity == 0 %}disabled{% endif %}>
           <div class="flex items-center gap-3">
             {% if p.image %}
@@ -104,7 +105,12 @@ document.querySelectorAll('.pos-item').forEach(btn => {
 
 function addToCart(id) {
   const btn = document.querySelector(`.pos-item[data-id="${id}"]`);
-  const item = { name: btn.dataset.name, price: parseFloat(btn.dataset.price), stock: parseInt(btn.dataset.stock) };
+  const item = {
+    name: btn.dataset.name,
+    price: parseFloat(btn.dataset.price),
+    stock: parseInt(btn.dataset.stock),
+    image: btn.dataset.image || ''
+  };
   if (!cart.has(id)) {
     cart.set(id, { ...item, qty: 0 });
   }
@@ -125,16 +131,55 @@ function render() {
     subtotal += lineSub;
     const row = document.createElement('div');
     row.className = 'py-2 flex items-center justify-between gap-2';
-    row.innerHTML = `
-      <div class="min-w-0">
-        <div class="text-sm font-medium truncate">${item.name}</div>
-        <div class="text-xs text-slate-500">₱${item.price.toFixed(2)} × ${item.qty}</div>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-sm font-semibold whitespace-nowrap">₱${lineSub.toFixed(2)}</span>
-        <button onclick="changeQty('${id}', -1)" class="w-6 h-6 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs">−</button>
-        <button onclick="changeQty('${id}', 1)" class="w-6 h-6 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs" ${item.qty >= item.stock ? 'disabled' : ''}>+</button>
-      </div>`;
+    const product = document.createElement('div');
+    product.className = 'flex min-w-0 items-center gap-2';
+
+    if (item.image) {
+      const thumbnail = document.createElement('img');
+      thumbnail.src = item.image;
+      thumbnail.alt = '';
+      thumbnail.className = 'h-10 w-10 shrink-0 rounded object-cover';
+      product.appendChild(thumbnail);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'flex h-10 w-10 shrink-0 items-center justify-center rounded bg-slate-100 text-xs text-slate-400';
+      placeholder.textContent = '—';
+      placeholder.setAttribute('aria-hidden', 'true');
+      product.appendChild(placeholder);
+    }
+
+    const details = document.createElement('div');
+    details.className = 'min-w-0';
+    const name = document.createElement('div');
+    name.className = 'truncate text-sm font-medium';
+    name.textContent = item.name;
+    const price = document.createElement('div');
+    price.className = 'text-xs text-slate-500';
+    price.textContent = `₱${item.price.toFixed(2)} × ${item.qty}`;
+    details.append(name, price);
+    product.appendChild(details);
+    row.appendChild(product);
+
+    const controls = document.createElement('div');
+    controls.className = 'flex shrink-0 items-center gap-2';
+    const total = document.createElement('span');
+    total.className = 'whitespace-nowrap text-sm font-semibold';
+    total.textContent = `₱${lineSub.toFixed(2)}`;
+    const decrease = document.createElement('button');
+    decrease.type = 'button';
+    decrease.className = 'h-6 w-6 rounded border border-slate-300 text-xs text-slate-600 hover:bg-slate-100';
+    decrease.textContent = '−';
+    decrease.setAttribute('aria-label', `Remove one ${item.name}`);
+    decrease.addEventListener('click', () => changeQty(id, -1));
+    const increase = document.createElement('button');
+    increase.type = 'button';
+    increase.className = 'h-6 w-6 rounded border border-slate-300 text-xs text-slate-600 hover:bg-slate-100';
+    increase.textContent = '+';
+    increase.disabled = item.qty >= item.stock;
+    increase.setAttribute('aria-label', `Add one ${item.name}`);
+    increase.addEventListener('click', () => changeQty(id, 1));
+    controls.append(total, decrease, increase);
+    row.appendChild(controls);
     cartItems.appendChild(row);
   }
   cartEmpty.style.display = cart.size === 0 ? 'block' : 'none';
