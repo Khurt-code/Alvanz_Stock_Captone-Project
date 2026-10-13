@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+<!-- sale_return view supplies the original sale, its returnable items, and refund-method choices. -->
+{% block title %}Return {{ sale.receipt_no }}{% endblock %}
+{% block content %}
+<div class="max-w-3xl">
+  <a href="{% url 'sales_list' %}" class="btn-secondary mb-4 inline-flex items-center gap-2">
+    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+    Back to Sales
+  </a>
+  <h1 class="text-2xl font-bold mb-1">Return — {{ sale.receipt_no }}</h1>
+  <p class="text-slate-500 mb-6">
+    {{ sale.created_at|date:"M d, Y H:i" }} · Sold by {{ sale.cashier.get_full_name|default:sale.cashier.username }}
+    · Total ₱{{ sale.total|floatformat:2 }}
+  </p>
+
+  {% if not has_returnable %}
+  <div class="card p-6 text-center text-slate-500">
+    Every item on this sale has already been fully returned.
+  </div>
+  {% else %}
+  <form method="post" class="card p-6 space-y-5">
+    {% csrf_token %}
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="table-head">Item</th>
+            <th class="table-head text-center">Sold</th>
+            <th class="table-head text-center">Returned</th>
+            <th class="table-head text-center">Return Qty</th>
+            <th class="table-head text-right">Unit Price</th>
+            <th class="table-head text-center">Restock</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for item in items %}
+          <tr class="{% if not item.returnable_quantity %}opacity-50{% endif %}">
+            <td class="table-cell font-medium">{{ item.product.name }}</td>
+            <td class="table-cell text-center">{{ item.quantity }}</td>
+            <td class="table-cell text-center">{{ item.returned_quantity }}</td>
+            <td class="table-cell text-center">
+              {% if item.returnable_quantity %}
+              <input type="number" name="qty_{{ item.id }}" min="0" max="{{ item.returnable_quantity }}"
+                     value="0" class="input w-24 text-center">
+              {% else %}
+              <span class="text-slate-400">—</span>
+              {% endif %}
+            </td>
+            <td class="table-cell text-right">₱{{ item.unit_price|floatformat:2 }}</td>
+            <td class="table-cell text-center">
+              {% if item.returnable_quantity %}
+              <input type="checkbox" name="restock_{{ item.id }}" checked
+                     class="h-4 w-4 rounded border-slate-300 text-amber-600">
+              {% else %}
+              <span class="text-slate-400">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-slate-500">Uncheck <b>Restock</b> for damaged items so the refund is issued without adding stock back.</p>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="label" for="refund_method">Refund Method</label>
+        <select id="refund_method" name="refund_method" class="input">
+          {% for value, label in methods %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="label" for="reason">Reason (optional)</label>
+        <input id="reason" name="reason" type="text" class="input" placeholder="e.g. wrong item, defective">
+      </div>
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <button type="submit" class="btn-primary">Process Return</button>
+      <a href="{% url 'sales_list' %}" class="btn-secondary">Cancel</a>
+    </div>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

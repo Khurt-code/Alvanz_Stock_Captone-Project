@@ -126,10 +126,11 @@ npm run build:css
       <tr><td>Categories</td><td><code>/categories/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users.</td></tr>
       <tr><td>Stock movement history / new movement</td><td><code>/stock/</code>, <code>/stock/new/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users.</td></tr>
       <tr><td>Low-stock alerts</td><td><code>/low-stock/</code></td><td><code>inventory/views.py: low_stock</code></td><td>Signed-in users.</td></tr>
-      <tr><td>Live stock and JSON feed</td><td><code>/real-time-stock/</code>, <code>/real-time-stock/data/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users; Stock Viewer is allowed.</td></tr>
+      <tr><td>Live stock and WebSocket feed</td><td><code>/real-time-stock/</code>, <code>ws/stock/</code></td><td><code>inventory/views.py</code>, <code>inventory/consumers.py</code></td><td>Signed-in users; Stock Viewer is allowed.</td></tr>
       <tr><td>POS and checkout</td><td><code>/pos/</code>, <code>/pos/checkout/</code></td><td><code>pos/views.py</code></td><td>Signed-in users except Stock Viewer.</td></tr>
       <tr><td>Receipt</td><td><code>/receipt/&lt;id&gt;/</code></td><td><code>pos/views.py: sale_receipt</code></td><td>Signed-in users except Stock Viewer.</td></tr>
       <tr><td>Sales history and reports</td><td><code>/sales/</code>, <code>/reports/sales/</code>, <code>/reports/inventory/</code></td><td><code>pos/views.py</code></td><td>Manager role.</td></tr>
+      <tr><td>Analytics dashboard</td><td><code>/reports/analytics/</code>, <code>/reports/analytics/data/</code>, <code>/reports/analytics/export/</code></td><td><code>pos/views.py</code></td><td>Manager role.</td></tr>
       <tr><td>Django admin</td><td><code>/admin/</code></td><td><code>accounts/admin.py</code>, app admin files</td><td>Requires Django admin staff/superuser permission.</td></tr>
     </tbody>
   </table>
@@ -180,9 +181,12 @@ npm run build:css
   <div class="flow">Product cards → JavaScript cart → POST JSON → pos_checkout validation → record_sale atomic transaction → Sale + SaleItems + stock-out transactions → receipt</div>
   <p>The browser computes totals for usability, but <code>pos_checkout</code> checks quantities, discount, tendered cash, and the cash multiplier again on the server. The model helper <code>record_sale()</code> wraps sale, items, and stock movements in a database transaction; if part fails, the database transaction can roll back.</p>
   <h3>Live stock</h3>
-  <p>The page polls <code>/real-time-stock/data/</code> every five seconds. The authenticated JSON view queries active products and returns quantity, unit, threshold, category, and low-stock status. It is periodic refresh, not a WebSocket push stream.</p>
+  <p>The page opens a WebSocket to <code>ws/stock/</code> and receives a full snapshot on connect, then per-product updates as stock changes. Updates are pushed by the server (event-driven), not polled. The consumer is <code>StockConsumer</code> in <code>inventory/consumers.py</code>; broadcasts are sent from <code>inventory/realtime.py</code> and triggered inside <code>StockTransaction.apply_to_stock()</code> / <code>reverse_stock()</code>, so every movement, sale, and return updates all connected clients at once. The JSON route <code>/real-time-stock/data/</code> remains as an HTTP fallback (used on load and while a socket reconnects).</p>
   <h3>Sales reporting</h3>
   <p>The manager-only sales report defaults to one day (today), accepts <code>?days=N</code> for 1–365 days, and includes both boundary dates. Print Report invokes the browser print dialog; print CSS hides controls and app navigation. The sales list also supports date filters.</p>
+  <h3>Analytics dashboard</h3>
+  <div class="flow">Date range → build_analytics() aggregates sales, refunds, and COGS → KPI cards + Chart.js charts → CSV export or browser Print-to-PDF</div>
+  <p>The manager-only page at <code>/reports/analytics/</code> fetches numbers from the JSON endpoint <code>/reports/analytics/data/</code> (which reuses <code>build_analytics(days)</code>), then renders KPI cards and three charts with the vendored Chart.js. Net sales = gross totals − refunds; gross profit = net sales − COGS (unit cost × quantity); margin is profit ÷ net sales. When a sale or return commits, <code>record_sale()</code> / <code>record_return()</code> call <code>broadcast_event("sale"/"return")</code>; <code>base.html</code> receives it and dispatches an <code>alvanz:sale_change</code> window event that refreshes the charts live. <code>analytics_export</code> streams the same figures as CSV with <code>csv.writer</code>.</p>
 
   <h2 id="change">6. How to change the code</h2>
   <h3>Use this change checklist</h3>
@@ -278,10 +282,11 @@ venv/bin/python manage.py migrate</code></pre>
     <li>Log in as a Manager and show product inventory and the stock threshold.</li>
     <li>Edit a product and upload a photo; show its preview and POS card.</li>
     <li>Open Record Stock Movement, record a stock-in, and show the quantity change.</li>
-    <li>Open Live Stock and explain the five-second JSON polling.</li>
+    <li>Open Live Stock and explain the WebSocket push (snapshot on connect, then per-product updates broadcast by the server).</li>
     <li>Open POS, add the pictured item, show the cart thumbnail, and explain browser-side totals versus server-side validation.</li>
     <li>Complete a sale, print the receipt, and point out the Sale, SaleItem, and stock-out records.</li>
     <li>Open the sales report, choose a day range, print it, then show the Stock Viewer’s restricted navigation and route behavior.</li>
+    <li>Open Analytics, change the day range, show net sales / profit / margin KPIs and the charts, then complete a sale in another tab and point out the live refresh.</li>
     <li>Finish with one test command and its result.</li>
   </ol>
   <h3>Questions to practice answering</h3>
@@ -290,9 +295,11 @@ venv/bin/python manage.py migrate</code></pre>
     <tbody>
       <tr><td>How does checkout update inventory?</td><td>The server validates the submitted cart; <code>record_sale()</code> atomically creates the sale and items and records stock-out transactions. The transaction model applies those movements to Product.quantity.</td></tr>
       <tr><td>Why validate on the server if JavaScript already checks?</td><td>Browser state can be modified or stale. Server checks are authoritative for inventory, discount, and payment.</td></tr>
-      <tr><td>What makes the stock page “real time”?</td><td>It fetches current server data every five seconds. It is polling, not instantaneous push; WebSockets would be a future option for lower latency.</td></tr>
+      <tr><td>What makes the stock page “real time”?</td><td>A Django Channels WebSocket (<code>ws/stock/</code>) pushes updates. The consumer sends a snapshot on connect and the server broadcasts each product change; the HTTP JSON route is only a fallback. This is push, not polling.</td></tr>
       <tr><td>How do permissions work?</td><td>Authentication decorators require sign-in, manager views use <code>manager_required</code>, and StockViewerAccessMiddleware allows only the stock page/data and logout. Django admin also checks staff permissions.</td></tr>
       <tr><td>How are uploaded photos stored?</td><td>The database stores a file path in an ImageField; the image file is stored separately under MEDIA_ROOT. Development URL serving is enabled only in DEBUG.</td></tr>
+      <tr><td>How is profit calculated?</td><td>Net sales (gross totals − refunds) minus COGS (each item’s unit cost × quantity). Margin is profit ÷ net sales. The same <code>build_analytics()</code> helper feeds the KPI cards, charts, and CSV export.</td></tr>
+      <tr><td>Why are the analytics charts live without polling?</td><td>The existing WebSocket is reused: <code>record_sale()</code>/<code>record_return()</code> broadcast a lightweight event after commit, <code>base.html</code> dispatches a window event, and the page refetches the JSON data endpoint.</td></tr>
       <tr><td>Why are migrations important?</td><td>The model is Python’s schema declaration; migrations version and apply schema changes to the database without manually editing SQLite.</td></tr>
       <tr><td>What would you improve next?</td><td>Examples: stronger stock adjustment semantics and audit trail, automated UI tests, production media storage, environment-based secrets, and pagination/monitoring for larger datasets.</td></tr>
       <tr><td>How do you know a change didn’t break another feature?</td><td>Run the focused test, the full suite, Django checks, and manually verify the affected user workflow and role boundaries.</td></tr>
@@ -305,7 +312,7 @@ venv/bin/python manage.py migrate</code></pre>
     <li><code>settings.py</code> currently has <code>DEBUG = True</code> and a hardcoded development secret. These are not production settings. Use environment variables, set DEBUG false, and configure allowed hosts before deployment.</li>
     <li>Uploaded media is served by Django’s development helper only while DEBUG is enabled. A production deployment needs durable media storage and web-server/CDN delivery.</li>
     <li>Local demo passwords are intentionally simple and must never be reused in production.</li>
-    <li>The README and project map may describe older behavior. Current source is authoritative: this version includes Stock Viewer, live stock, product image upload, and day-count sales reports.</li>
+    <li>The README and project map may describe older behavior. Current source is authoritative: this version includes Stock Viewer, live stock, product image upload, day-count sales reports, returns and refunds, and the live analytics dashboard.</li>
     <li>SQLite is suitable for this capstone/local deployment. A multi-user production environment should evaluate a managed database and backup/restore procedures.</li>
   </ul>
   <h2>One-minute mental model</h2>

@@ -37,7 +37,7 @@
           <td class="table-cell text-center text-red-600 font-bold">{{ p.quantity }}</td>
           <td class="table-cell text-center">{{ p.min_stock_level }}</td>
           <td class="table-cell text-right font-semibold">{{ p.min_stock_level|add:"0" }}<span class="text-slate-400 text-xs"> needed</span></td>
-          <td class="table-cell text-right"><a href="{% url 'stock_transaction_create' %}" class="btn-primary text-xs px-3 py-1.5">Restock</a></td>
+          <td class="table-cell text-right"><a href="{% url 'stock_transaction_create' %}?product={{ p.pk }}" class="btn-primary text-xs px-3 py-1.5">Restock</a></td>
         </tr>
         {% endfor %}
       </tbody>

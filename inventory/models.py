@@ -1,5 +1,7 @@
 from django.db import models
 
+from .realtime import broadcast_stock_update
+
 
 # Inventory data layer; StockTransaction mutates Product.quantity and is also used by POS sales.
 class Category(models.Model):
@@ -72,6 +74,7 @@ class StockTransaction(models.Model):
         else:
             product.quantity = max(0, product.quantity - self.quantity)
         product.save(update_fields=["quantity", "updated_at"])
+        broadcast_stock_update(product)
 
     def delete(self, *args, **kwargs):
         self.reverse_stock()
@@ -84,3 +87,4 @@ class StockTransaction(models.Model):
         else:
             product.quantity += self.quantity
         product.save(update_fields=["quantity", "updated_at"])
+        broadcast_stock_update(product)

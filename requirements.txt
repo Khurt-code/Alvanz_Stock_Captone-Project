@@ -1,3 +1,5 @@
-# Python runtime dependencies: Django runs the app; Pillow validates product ImageField uploads.
+# Python runtime dependencies: Django runs the app; Channels/Daphne push live stock over WebSockets; Pillow validates product ImageField uploads.
 Django==6.1
+channels
+daphne
 Pillow

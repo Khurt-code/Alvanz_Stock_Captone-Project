@@ -142,7 +142,9 @@ def stock_transaction_create(request):
             messages.success(request, f"{txn.get_transaction_type_display()} of {txn.quantity} recorded.")
             return redirect("product_detail", pk=txn.product_id)
     else:
-        form = StockTransactionForm()
+        product_id = request.GET.get("product")
+        initial = {"product": product_id} if product_id and product_id.isdigit() else {}
+        form = StockTransactionForm(initial=initial)
     return render(request, "inventory/stock_form.html", {"form": form, "title": "Record Stock Movement"})
 
 

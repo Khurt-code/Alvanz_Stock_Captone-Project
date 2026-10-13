@@ -1,0 +1,57 @@
+{% load static %}
+<!-- Standalone printable return credit memo rendered by return_receipt from a Return and its ReturnItems. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Return {{ ret.receipt_no }}</title>
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+</head>
+<body class="bg-white text-slate-900 font-mono">
+  <div class="max-w-xs mx-auto p-4 text-[13px] leading-snug">
+    <div class="text-center mb-3">
+      <div class="text-lg font-bold">ALVANZ HARDWARE</div>
+      <div>Poblacion, Balingasag, Misamis Oriental</div>
+      <div>Tel: (000) 000-0000</div>
+    </div>
+    <hr class="border-dashed border-t border-slate-400 my-2">
+    <div class="text-center font-bold mb-1">RETURN / REFUND</div>
+    <div class="flex justify-between"><span>Return No:</span><span>{{ ret.receipt_no }}</span></div>
+    <div class="flex justify-between"><span>Orig. Sale:</span><span>{{ ret.sale.receipt_no }}</span></div>
+    <div class="flex justify-between"><span>Date:</span><span>{{ ret.created_at|date:"M d, Y" }}</span></div>
+    <div class="flex justify-between"><span>Time:</span><span>{{ ret.created_at|time:"H:i:s" }}</span></div>
+    <div class="flex justify-between"><span>Processed:</span><span>{{ ret.processed_by.get_full_name|default:ret.processed_by.username }}</span></div>
+    <hr class="border-dashed border-t border-slate-400 my-2">
+    <table class="w-full">
+      <thead>
+        <tr class="text-left">
+          <th>Item</th>
+          <th class="text-center">Qty</th>
+          <th class="text-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in ret.items.all %}
+        <tr>
+          <td class="pr-2">{{ item.product.name }}{% if not item.restock %} *{% endif %}</td>
+          <td class="text-center">{{ item.quantity }}</td>
+          <td class="text-right">{{ item.subtotal|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <hr class="border-dashed border-t border-slate-400 my-2">
+    <div class="flex justify-between text-base font-bold"><span>REFUND</span><span>₱{{ ret.refund_amount|floatformat:2 }}</span></div>
+    <div class="flex justify-between"><span>Method</span><span>{{ ret.get_refund_method_display }}</span></div>
+    {% if ret.reason %}<div class="flex justify-between"><span>Reason</span><span>{{ ret.reason }}</span></div>{% endif %}
+    <hr class="border-dashed border-t border-slate-400 my-2">
+    <div class="text-center">
+      <p>Items marked * were not restocked.</p>
+      <p class="mt-1">This credit memo is computer generated.</p>
+    </div>
+  </div>
+  <div class="text-center mt-4 print:hidden">
+    <button onclick="window.print()" class="btn-primary">Print</button>
+  </div>
+</body>
+</html>

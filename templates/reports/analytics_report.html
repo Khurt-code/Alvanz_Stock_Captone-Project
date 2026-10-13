@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+<!-- analytics_report renders KPI cards and Chart.js charts, all fed from the analytics_data JSON endpoint. -->
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<div id="analytics" class="analytics" data-analytics-data="{% url 'analytics_data' %}{% if days != 30 %}?days={{ days }}{% endif %}" data-analytics-export="{% url 'analytics_export' %}">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">Analytics</h1>
+      <p class="text-slate-500 mt-1" id="analytics-range">Loading…</p>
+    </div>
+    <div class="print-hidden flex flex-wrap items-end gap-2">
+      <form method="get" class="flex items-end gap-2">
+        <div>
+          <label for="analytics-days" class="mb-1 block text-xs font-medium text-slate-600">Range (days)</label>
+          <input id="analytics-days" name="days" type="number" min="1" max="365" value="{{ days }}" required class="input w-28">
+        </div>
+        <button type="submit" class="btn-primary px-3 py-2">Apply</button>
+      </form>
+      <a id="analytics-export" href="#analytics-export" class="btn-secondary px-3 py-2">Export CSV</a>
+      <button id="analytics-print" type="button" class="btn-secondary px-3 py-2">Print / PDF</button>
+    </div>
+  </div>
+
+  {% if invalid_days %}
+  <p class="print-hidden mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Choose a range between 1 and 365 days. Showing the last 30 days.</p>
+  {% endif %}
+
+  <div id="analytics-kpis" class="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-8"></div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div class="card p-5 xl:col-span-2">
+      <h2 class="font-semibold mb-4">Sales Trend</h2>
+      <div class="relative h-72"><canvas id="trend-chart"></canvas></div>
+    </div>
+    <div class="card p-5">
+      <h2 class="font-semibold mb-4">Top Products</h2>
+      <div class="relative h-72"><canvas id="products-chart"></canvas></div>
+    </div>
+    <div class="card p-5">
+      <h2 class="font-semibold mb-4">Sales by Category</h2>
+      <div class="relative h-72"><canvas id="category-chart"></canvas></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<style>
+  @media print {
+    @page { margin: 12mm; }
+    #analytics {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      width: 100%;
+      min-height: 100vh;
+      padding: 0;
+      background: #fff;
+      color: #000;
+    }
+    .print-hidden { display: none !important; }
+    #analytics .grid { display: block !important; }
+    #analytics .card {
+      margin-bottom: 12px;
+      border: 1px solid #d1d5db;
+      box-shadow: none;
+      break-inside: avoid;
+    }
+  }
+</style>
+<script>
+  (() => {
+    const page = document.getElementById("analytics");
+    const dataUrl = page.dataset.analyticsData;
+    const exportBase = page.dataset.analyticsExport;
+
+    const CHARTS = {};
+    const KPI_STYLES = {
+      net_sales: ["emerald", "bg-emerald-100 text-emerald-600"],
+      gross_sales: ["slate", "bg-slate-100 text-slate-600"],
+      discounts: ["red", "bg-red-100 text-red-600"],
+      refunds: ["red", "bg-red-100 text-red-600"],
+      gross_profit: ["emerald", "bg-emerald-100 text-emerald-600"],
+      margin: ["blue", "bg-blue-100 text-blue-600"],
+      transactions: ["slate", "bg-slate-100 text-slate-600"],
+      units_sold: ["amber", "bg-amber-100 text-amber-600"],
+      avg_sale: ["blue", "bg-blue-100 text-blue-600"],
+      cogs: ["slate", "bg-slate-100 text-slate-600"],
+    };
+    const KPI_ORDER = ["net_sales", "gross_sales", "discounts", "refunds", "gross_profit", "margin", "transactions", "units_sold", "avg_sale", "cogs"];
+
+    const peso = (value) => `₱${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const num = (value) => Number(value).toLocaleString();
+    const pct = (value) => `${Number(value).toFixed(1)}%`;
+
+    function renderKpis(kpis) {
+      const grid = document.getElementById("analytics-kpis");
+      grid.replaceChildren();
+      for (const key of KPI_ORDER) {
+        const value = kpis[key] ?? 0;
+        const styles = KPI_STYLES[key] || ["slate", "bg-slate-100 text-slate-600"];
+        let text;
+        if (key === "margin") text = pct(value);
+        else if (["net_sales", "gross_sales", "discounts", "refunds", "gross_profit", "avg_sale", "cogs"].includes(key)) text = peso(value);
+        else text = num(value);
+
+        const card = document.createElement("div");
+        card.className = "card p-5";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm text-slate-500">${key.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</div>
+              <div class="text-2xl font-bold mt-1">${text}</div>
+            </div>
+            <div class="w-10 h-10 rounded-lg ${styles[1]} flex items-center justify-center text-sm font-bold">${key.charAt(0).toUpperCase()}</div>
+          </div>`;
+        grid.append(card);
+      }
+    }
+
+    function renderRange(data) {
+      document.getElementById("analytics-range").textContent =
+        `Last ${data.days} days · ${data.start} to ${data.end} — updates live`;
+    }
+
+    function renderTrend(daily) {
+      const labels = daily.map((row) => row.day);
+      if (CHARTS.trend) CHARTS.trend.destroy();
+      CHARTS.trend = new Chart(document.getElementById("trend-chart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            { label: "Sales", data: daily.map((row) => row.sales), borderColor: "#94a3b8", backgroundColor: "#94a3b8", tension: 0.3 },
+            { label: "Net", data: daily.map((row) => row.net), borderColor: "#059669", backgroundColor: "#059669", tension: 0.3, fill: true },
+          ],
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } },
+      });
+    }
+
+    function renderProducts(top) {
+      if (CHARTS.products) CHARTS.products.destroy();
+      CHARTS.products = new Chart(document.getElementById("products-chart"), {
+        type: "bar",
+        data: {
+          labels: top.map((row) => row.name),
+          datasets: [
+            { label: "Revenue", data: top.map((row) => row.revenue), backgroundColor: "#f59e0b" },
+            { label: "Profit", data: top.map((row) => row.profit), backgroundColor: "#10b981" },
+          ],
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } }, scales: { x: { ticks: { maxRotation: 60 } } } },
+      });
+    }
+
+    function renderCategories(categories) {
+      if (CHARTS.categories) CHARTS.categories.destroy();
+      const palette = ["#f59e0b", "#10b981", "#0ea5e9", "#8b5cf6", "#ef4444", "#f97316", "#14b8a6", "#6366f1"];
+      CHARTS.categories = new Chart(document.getElementById("category-chart"), {
+        type: "doughnut",
+        data: {
+          labels: categories.map((row) => row.name),
+          datasets: [{ data: categories.map((row) => row.revenue), backgroundColor: palette }],
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } },
+      });
+    }
+
+    async function load() {
+      try {
+        const response = await fetch(dataUrl, { headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("Analytics request failed");
+        const data = await response.json();
+        renderRange(data);
+        renderKpis(data.kpis);
+        renderTrend(data.daily);
+        renderProducts(data.top_products);
+        renderCategories(data.categories);
+        document.getElementById("analytics-export").href = `${exportBase}?days=${data.days}`;
+      } catch (error) {
+        document.getElementById("analytics-range").textContent = "Failed to load analytics.";
+      }
+    }
+
+    document.getElementById("analytics-print").addEventListener("click", () => window.print());
+    document.getElementById("analytics-export").addEventListener("click", (event) => {
+      event.preventDefault();
+      window.location.href = event.currentTarget.href;
+    });
+    window.addEventListener("alvanz:sale_change", load);
+    load();
+  })();
+</script>
+{% endblock %}

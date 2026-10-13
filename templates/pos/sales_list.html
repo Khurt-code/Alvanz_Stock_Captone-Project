@@ -5,7 +5,7 @@
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
   <div>
     <h1 class="text-2xl font-bold">Sales Transactions</h1>
-    <p class="text-slate-500 mt-1">Total: <span class="font-semibold text-slate-700">₱{{ total|floatformat:2 }}</span> · {{ sales|length }} transactions</p>
+    <p class="text-slate-500 mt-1">Total: <span class="font-semibold text-slate-700">₱{{ total|floatformat:2 }}</span>{% if total_refunded %} · Refunded: <span class="font-semibold text-red-600">₱{{ total_refunded|floatformat:2 }}</span> · Net: <span class="font-semibold text-emerald-600">₱{{ net_total|floatformat:2 }}</span>{% endif %} · {{ sales|length }} transactions</p>
   </div>
   <a href="{% url 'pos_screen' %}" class="btn-primary">New Sale</a>
 </div>
@@ -41,7 +41,8 @@
           <th class="table-head text-right">Cash</th>
           <th class="table-head text-right">Change</th>
           <th class="table-head">Date & Time</th>
-          <th class="table-head text-right">Receipt</th>
+          <th class="table-head text-center">Status</th>
+          <th class="table-head text-right">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
@@ -55,10 +56,21 @@
           <td class="table-cell text-right">₱{{ s.cash_tendered|floatformat:2 }}</td>
           <td class="table-cell text-right">₱{{ s.change|floatformat:2 }}</td>
           <td class="table-cell text-slate-500">{{ s.created_at|date:"M d, Y H:i" }}</td>
-          <td class="table-cell text-right"><a href="{% url 'sale_receipt' s.pk %}" target="_blank" class="text-amber-600 hover:underline font-medium">View</a></td>
+          <td class="table-cell text-center">
+            {% if s.return_count %}
+              <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">Returned ₱{{ s.refunded|floatformat:2 }}</span>
+            {% else %}
+              <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">Complete</span>
+            {% endif %}
+          </td>
+          <td class="table-cell text-right whitespace-nowrap">
+            <a href="{% url 'sale_receipt' s.pk %}" target="_blank" class="text-amber-600 hover:underline font-medium">Receipt</a>
+            {% if s.return_count %}<a href="{% url 'return_receipt' s.returns.first.pk %}" target="_blank" class="ml-3 text-red-600 hover:underline font-medium">Refund</a>{% endif %}
+            <a href="{% url 'sale_return' s.pk %}" class="ml-3 text-slate-600 hover:underline font-medium">Return</a>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="9" class="table-cell text-center text-slate-400 py-8">No sales found for this filter.</td></tr>
+        <tr><td colspan="10" class="table-cell text-center text-slate-400 py-8">No sales found for this filter.</td></tr>
         {% endfor %}
       </tbody>
     </table>

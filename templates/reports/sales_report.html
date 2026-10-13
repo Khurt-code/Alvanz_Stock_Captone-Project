@@ -24,7 +24,7 @@
   <p class="print-hidden mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Choose a report length between 1 and 365 days. Showing today's report.</p>
   {% endif %}
 
-  <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+  <div class="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
     <div class="card p-5">
       <div class="text-sm text-slate-500">Transactions</div>
       <div class="text-3xl font-bold mt-1">{{ summary.count|default:0 }}</div>
@@ -38,8 +38,13 @@
       <div class="text-3xl font-bold mt-1 text-red-600">-₱{{ summary.discount|default:0|floatformat:2 }}</div>
     </div>
     <div class="card p-5">
+      <div class="text-sm text-slate-500">Returns</div>
+      <div class="text-3xl font-bold mt-1 text-red-600">-₱{{ refund_total|default:0|floatformat:2 }}</div>
+      <div class="text-xs text-slate-400 mt-1">{{ refund_summary.count|default:0 }} refund{{ refund_summary.count|default:0|pluralize }}</div>
+    </div>
+    <div class="card p-5">
       <div class="text-sm text-slate-500">Net Sales</div>
-      <div class="text-3xl font-bold mt-1 text-emerald-600">₱{{ summary.total|default:0|floatformat:2 }}</div>
+      <div class="text-3xl font-bold mt-1 text-emerald-600">₱{{ net_sales|default:0|floatformat:2 }}</div>
     </div>
   </div>
 
@@ -90,6 +95,30 @@
       </div>
     </div>
   </div>
+
+  {% if returns %}
+  <div class="card overflow-hidden mt-6">
+    <div class="px-6 py-4 border-b border-slate-200"><h2 class="font-semibold">Refunds / Returns</h2></div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-slate-50">
+          <tr><th class="table-head">Return No.</th><th class="table-head">Orig. Sale</th><th class="table-head">Processed By</th><th class="table-head text-right">Refund</th><th class="table-head">Date</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for r in returns %}
+          <tr class="hover:bg-slate-50">
+            <td class="table-cell font-medium"><a href="{% url 'return_receipt' r.pk %}" class="text-amber-600 hover:underline">{{ r.receipt_no }}</a></td>
+            <td class="table-cell">{{ r.sale.receipt_no }}</td>
+            <td class="table-cell">{{ r.processed_by.get_full_name|default:r.processed_by.username }}</td>
+            <td class="table-cell text-right font-semibold text-red-600">-₱{{ r.refund_amount|floatformat:2 }}</td>
+            <td class="table-cell text-slate-500">{{ r.created_at|date:"M d, Y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 

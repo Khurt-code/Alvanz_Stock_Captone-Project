@@ -20,12 +20,18 @@
 | `/stock/new/` | `inventory/views.py` → `stock_transaction_create` | `inventory/stock_form.html` |
 | `/stock/` | `inventory/views.py` → `stock_transaction_list` | `inventory/stock_list.html` |
 | `/low-stock/` | `inventory/views.py` → `low_stock` | `inventory/low_stock.html` |
+| `/real-time-stock/` | `inventory/views.py` → `real_time_stock` | `inventory/real_time_stock.html` |
+| `/real-time-stock/data/` | `inventory/views.py` → `real_time_stock_data` (JSON) | — |
+| `ws/stock/` | `inventory/consumers.py` → `StockConsumer` | — |
 | `/pos/` | `pos/views.py` → `pos_screen` | `pos/pos_screen.html` |
 | `/pos/checkout/` | `pos/views.py` → `pos_checkout` (JSON API) | — |
 | `/receipt/<id>/` | `pos/views.py` → `sale_receipt` | `pos/receipt.html` |
 | `/sales/` | `pos/views.py` → `sales_list` | `pos/sales_list.html` |
 | `/reports/sales/` | `pos/views.py` → `sales_report` | `reports/sales_report.html` |
 | `/reports/inventory/` | `pos/views.py` → `inventory_report` | `reports/inventory_report.html` |
+| `/reports/analytics/` | `pos/views.py` → `analytics_report` | `reports/analytics_report.html` |
+| `/reports/analytics/data/` | `pos/views.py` → `analytics_data` (JSON) | — |
+| `/reports/analytics/export/` | `pos/views.py` → `analytics_export` (CSV) | — |
 | `/accounts/login/` | `accounts/views.py` → `AlvanzLoginView` | `registration/login.html` |
 | `/admin/` | Django admin | — |
 
@@ -84,11 +90,28 @@ Tables use `.table-head` / `.table-cell` in: `dashboard`, `product_list`, `produ
 | Receipt modal (iframe) | `pos/pos_screen.html` | shows `receipt.html` after checkout |
 | Period filter pills | `reports/sales_report.html` | Today / Last 7 Days / This Month |
 
+## Real-time (WebSocket)
+
+Live stock and low-stock alerts are pushed over a WebSocket (Django Channels, ASGI/Daphne).
+
+| Piece | File | Role |
+|---|---|---|
+| ASGI app | `alvanzstock/asgi.py` | `ProtocolTypeRouter`: HTTP → Django, WebSocket → `AuthMiddlewareStack(URLRouter(...))` |
+| Consumer | `inventory/consumers.py` | `StockConsumer`: joins group `stock_updates`, sends a snapshot on connect, relays per-product pushes |
+| Routing | `inventory/routing.py` | `ws/stock/` route |
+| Broadcast helper | `inventory/realtime.py` | `broadcast_stock_update(product)` and `broadcast_event(kind)` via `async_to_sync(group_send)` |
+| Trigger point | `inventory/models.py` → `StockTransaction.apply_to_stock()` / `reverse_stock()` | Every stock movement, POS sale, and return broadcasts the new quantity |
+| Event trigger | `pos/models.py` → `record_sale()` / `record_return()` → `broadcast_event("sale"/"return")` | Live-refreshes the manager Analytics dashboard |
+| Frontend | `real_time_stock.html` (live table), `base.html` (low-stock toast + sale event), `reports/analytics_report.html` (live charts) | Connect to `ws/stock/`, render snapshot + pushes |
+
+Channel layer: `channels.layers.InMemoryChannelLayer` (`settings.py`), single-process only.
+
 ## Static assets
 
 ```
 static/css/input.css    <- Tailwind source (@tailwind + component classes)
 static/css/output.css   <- compiled CSS (Django serves this)
+static/js/chart.umd.min.js <- vendored Chart.js (analytics charts)
 tailwind.config.js      <- scans ./templates/**/*.html
 ```
 

@@ -75,6 +75,13 @@
     const status = document.getElementById("stock-status");
     const statusDot = document.getElementById("stock-status-dot");
     let products = [];
+    let socket = null;
+    let retries = 0;
+    let pollTimer = null;
+
+    const GREEN = "h-2.5 w-2.5 rounded-full bg-emerald-500";
+    const RED = "h-2.5 w-2.5 rounded-full bg-red-500";
+    const AMBER = "h-2.5 w-2.5 rounded-full bg-amber-500";
 
     function renderProducts() {
       const query = searchInput.value.trim().toLowerCase();
@@ -95,6 +102,7 @@
 
       for (const product of visibleProducts) {
         const row = document.createElement("tr");
+        row.dataset.productId = product.id;
         const values = [product.name, product.sku, product.category];
         for (const value of values) {
           const cell = document.createElement("td");
@@ -129,34 +137,90 @@
         `${visibleProducts.length} of ${products.length} products`;
     }
 
+    function updateSummary() {
+      document.getElementById("stock-product-count").textContent = products.length;
+      document.getElementById("stock-unit-count").textContent = products.reduce(
+        (total, product) => total + product.quantity, 0
+      ).toLocaleString();
+      document.getElementById("stock-low-count").textContent = products.filter(
+        (product) => product.is_low_stock
+      ).length;
+      document.getElementById("stock-updated-at").textContent = new Date().toLocaleTimeString();
+    }
+
+    function applySnapshot(list) {
+      products = list;
+      renderProducts();
+      updateSummary();
+    }
+
+    function applyProduct(product) {
+      const index = products.findIndex((item) => item.id === product.id);
+      if (index === -1) {
+        products.push(product);
+      } else {
+        products[index] = product;
+      }
+      renderProducts();
+      updateSummary();
+    }
+
+    // HTML fallback: used once on load and while the socket is reconnecting.
     async function refreshStock() {
       try {
         const response = await fetch(page.dataset.stockUrl, { headers: { Accept: "application/json" } });
         if (!response.ok) throw new Error("Stock request failed");
-        const data = await response.json();
-        products = data.products;
-        renderProducts();
-
-        document.getElementById("stock-product-count").textContent = products.length;
-        document.getElementById("stock-unit-count").textContent = products.reduce(
-          (total, product) => total + product.quantity, 0
-        ).toLocaleString();
-        document.getElementById("stock-low-count").textContent = products.filter(
-          (product) => product.is_low_stock
-        ).length;
-        document.getElementById("stock-updated-at").textContent = new Date().toLocaleTimeString();
-        status.textContent = "Live · refreshes every 5 seconds";
-        statusDot.className = "h-2.5 w-2.5 rounded-full bg-emerald-500";
+        applySnapshot((await response.json()).products);
       } catch (error) {
-        status.textContent = "Connection lost · retrying";
-        statusDot.className = "h-2.5 w-2.5 rounded-full bg-red-500";
+        /* the WebSocket path reports status; ignore transient fallback errors */
       }
+    }
+
+    function startPolling() {
+      if (pollTimer) return;
+      refreshStock();
+      pollTimer = window.setInterval(refreshStock, 5000);
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        window.clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    function connect() {
+      const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+      socket = new WebSocket(`${scheme}://${window.location.host}/ws/stock/`);
+
+      socket.addEventListener("open", () => {
+        retries = 0;
+        stopPolling();
+        status.textContent = "Live · real-time";
+        statusDot.className = GREEN;
+      });
+
+      socket.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === "snapshot") applySnapshot(data.products);
+        else if (data.type === "product") applyProduct(data.product);
+      });
+
+      socket.addEventListener("close", () => {
+        status.textContent = "Reconnecting...";
+        statusDot.className = AMBER;
+        startPolling();
+        retries += 1;
+        window.setTimeout(connect, Math.min(1000 * retries, 10000));
+      });
+
+      socket.addEventListener("error", () => socket.close());
     }
 
     searchInput.addEventListener("input", renderProducts);
     document.getElementById("stock-refresh").addEventListener("click", refreshStock);
     refreshStock();
-    window.setInterval(refreshStock, 5000);
+    connect();
   })();
 </script>
 {% endblock %}

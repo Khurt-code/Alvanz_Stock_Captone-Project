@@ -6,18 +6,19 @@ A capstone project implementing a web-based inventory management and Point of Sa
 
 ## Features
 
-- **Real-time inventory monitoring** — stock updates automatically after every stock-in, stock-out, or sale.
+- **Real-time inventory monitoring** — stock updates push instantly over a WebSocket to every open Live Stock screen (and low-stock toasts) as stock-in, stock-out, sales, or returns happen.
 - **Stock-in / Stock-out recording** — track incoming and outgoing items with reference numbers and notes.
 - **Point of Sale (POS)** — product search, cart, discounts, cash tendering, change computation, and printable receipts.
 - **Low-stock alerts** — automatic warning when a product's quantity reaches its minimum stock level.
 - **Reports** — sales report (today / last 7 days / this month), inventory report with stock valuation, and sales history.
+- **Analytics dashboard** — manager-only KPIs (net sales, profit, margin), sales trend, top products, and category breakdown with live-updating Chart.js charts plus CSV export.
 - **Role-based access** — Manager, Cashier, and Staff roles.
 - **Django Admin** — full management interface at `/admin/`.
 
 ## Tech Stack
 
-- Backend: Django 6.1, SQLite
-- Frontend: TailwindCSS 3 (CLI build), vanilla JS
+- Backend: Django 6.1, Django Channels 4 (ASGI/Daphne), SQLite
+- Frontend: TailwindCSS 3 (CLI build), vanilla JS + WebSockets, Chart.js (vendored)
 
 ## Setup
 
@@ -30,6 +31,8 @@ python3 -m venv venv
 ```
 
 Open http://127.0.0.1:8000
+
+`runserver` is served by Daphne (ASGI) because `daphne` is in `INSTALLED_APPS`, so the live-stock WebSocket works with no extra server. The default channel layer is in-memory (single process); use Redis for multi-worker deployments.
 
 ### Demo accounts (created by `seed_data`)
 
