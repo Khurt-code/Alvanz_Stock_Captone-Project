@@ -15,6 +15,7 @@
         <h1 class="text-2xl font-bold">{{ product.name }}</h1>
         <p class="text-slate-500 mt-1">SKU: {{ product.sku }} · {{ product.category.name|default:"Uncategorized" }} · {{ product.unit }}</p>
       </div>
+      {% if user.is_manager %}
       <div class="flex gap-2">
         <a href="{% url 'product_edit' product.pk %}" class="btn-secondary text-sm">Edit</a>
         <form method="post" action="{% url 'product_delete' product.pk %}" onsubmit="return confirm('Remove {{ product.name|escapejs }}?')">
@@ -22,6 +23,7 @@
           <button class="btn-danger text-sm">Delete</button>
         </form>
       </div>
+      {% endif %}
     </div>
     <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
       <div class="bg-slate-50 rounded-lg p-4">
@@ -47,7 +49,9 @@
       {% else %}
         <span class="text-sm font-semibold px-3 py-1.5 rounded bg-emerald-100 text-emerald-700">Stock level OK</span>
       {% endif %}
+      {% if user.is_manager %}
       <a href="{% url 'stock_transaction_create' %}" class="btn-primary text-sm">Record Stock Movement</a>
+      {% endif %}
     </div>
   </div>
 
@@ -91,10 +95,14 @@
           <td class="table-cell text-slate-500">{{ t.notes|default:"—"|truncatechars:40 }}</td>
           <td class="table-cell text-slate-500">{{ t.created_at|date:"M d, Y H:i" }}</td>
           <td class="table-cell text-right">
+            {% if user.is_manager %}
             <form method="post" action="{% url 'stock_transaction_delete' t.pk %}" class="inline" onsubmit="return confirm('Delete this {{ t.get_transaction_type_display|lower }} of {{ t.quantity }} × {{ t.product.name|escapejs }}? Stock will be adjusted.')">
               {% csrf_token %}
               <button class="text-red-500 hover:text-red-700">Delete</button>
             </form>
+            {% else %}
+            <span class="text-slate-300">—</span>
+            {% endif %}
           </td>
         </tr>
         {% empty %}

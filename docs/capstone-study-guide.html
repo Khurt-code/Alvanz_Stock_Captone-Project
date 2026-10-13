@@ -39,6 +39,9 @@
   .toc { columns: 2; padding-left: 21px; }
   .toc li { break-inside: avoid; }
   .flow { background: #eff5f3; border: 1px solid var(--line); padding: 12px; text-align: center; font-weight: 700; color: var(--teal); margin: 14px 0; break-inside: avoid; }
+  .diagram { margin: 16px 0 6px; break-inside: avoid; }
+  .diagram img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: white; }
+  .diagram figcaption { margin-top: 7px; font-size: 11px; color: var(--muted); text-align: center; }
   .page-break { break-before: page; }
   .checklist li { list-style: "□  "; padding-left: 4px; }
   .footer-note { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 12px; font-size: 11px; color: var(--muted); }
@@ -105,6 +108,10 @@ npm run build:css
   <div class="callout warning"><strong>Do not confuse environments:</strong> <code>db.sqlite3</code> is the development database. Django tests create a separate temporary test database and destroy it afterward. A successful test run does not create or delete your demo data.</div>
 
   <h2 id="architecture">2. How a request travels</h2>
+  <figure class="diagram">
+    <img src="system-architecture.png" alt="AlvanzStock system architecture: browsers connect over HTTP and WebSocket to the Daphne ASGI server, which routes to the Django applications (accounts, inventory, pos) backed by SQLite and an in-memory channel layer, with a WebSocket push loop for live stock, low-stock toasts, and sale/return analytics refresh.">
+    <figcaption>Figure 1. High-level system architecture: clients, transport (HTTP + WebSocket), ASGI server, Django applications, and data/realtime stores.</figcaption>
+  </figure>
   <div class="flow">Browser URL → root URL configuration → app URL → view → model/query → template or JSON → browser</div>
   <ul>
     <li><code>alvanzstock/urls.py</code> is the top-level router. It includes account, inventory, and POS URLs.</li>
@@ -121,11 +128,13 @@ npm run build:css
     <thead><tr><th>Page or action</th><th>Route</th><th>Owner</th><th>Access</th></tr></thead>
     <tbody>
       <tr><td>Dashboard</td><td><code>/</code></td><td><code>inventory/views.py: dashboard</code></td><td>Signed-in users; Stock Viewer is redirected to Live Stock.</td></tr>
-      <tr><td>Products</td><td><code>/products/</code></td><td><code>inventory/views.py: product_list</code></td><td>Signed-in users.</td></tr>
-      <tr><td>Add / edit product</td><td><code>/products/new/</code>, <code>/products/&lt;id&gt;/edit/</code></td><td><code>inventory/views.py</code>, <code>ProductForm</code></td><td>Signed-in users.</td></tr>
-      <tr><td>Categories</td><td><code>/categories/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users.</td></tr>
-      <tr><td>Stock movement history / new movement</td><td><code>/stock/</code>, <code>/stock/new/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users.</td></tr>
-      <tr><td>Low-stock alerts</td><td><code>/low-stock/</code></td><td><code>inventory/views.py: low_stock</code></td><td>Signed-in users.</td></tr>
+      <tr><td>Products (read)</td><td><code>/products/</code></td><td><code>inventory/views.py: product_list</code></td><td>Signed-in users (read-only for Cashier and Staff).</td></tr>
+      <tr><td>Add / edit / delete product</td><td><code>/products/new/</code>, <code>/products/&lt;id&gt;/edit/</code>, <code>/products/&lt;id&gt;/delete/</code></td><td><code>inventory/views.py</code>, <code>ProductForm</code></td><td>Manager role; protected by <code>inventory_manager_required</code>.</td></tr>
+      <tr><td>Categories (read)</td><td><code>/categories/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users (read-only for Cashier and Staff).</td></tr>
+      <tr><td>Add / delete category</td><td><code>/categories/new/</code>, <code>/categories/&lt;id&gt;/delete/</code></td><td><code>inventory/views.py</code></td><td>Manager role; protected by <code>inventory_manager_required</code>.</td></tr>
+      <tr><td>Stock movement history (read)</td><td><code>/stock/</code></td><td><code>inventory/views.py</code></td><td>Signed-in users (read-only for Cashier and Staff).</td></tr>
+      <tr><td>Record / delete stock movement (restock)</td><td><code>/stock/new/</code>, <code>/stock/&lt;id&gt;/delete/</code></td><td><code>inventory/views.py</code></td><td>Manager role; protected by <code>inventory_manager_required</code>. Cashier/Staff are redirected to <code>/pos/</code>.</td></tr>
+      <tr><td>Low-stock alerts</td><td><code>/low-stock/</code></td><td><code>inventory/views.py: low_stock</code></td><td>Signed-in users (restock buttons hidden for Cashier and Staff).</td></tr>
       <tr><td>Live stock and WebSocket feed</td><td><code>/real-time-stock/</code>, <code>ws/stock/</code></td><td><code>inventory/views.py</code>, <code>inventory/consumers.py</code></td><td>Signed-in users; Stock Viewer is allowed.</td></tr>
       <tr><td>POS and checkout</td><td><code>/pos/</code>, <code>/pos/checkout/</code></td><td><code>pos/views.py</code></td><td>Signed-in users except Stock Viewer.</td></tr>
       <tr><td>Receipt</td><td><code>/receipt/&lt;id&gt;/</code></td><td><code>pos/views.py: sale_receipt</code></td><td>Signed-in users except Stock Viewer.</td></tr>
@@ -136,14 +145,16 @@ npm run build:css
   </table>
   <h3>Roles and where restrictions live</h3>
   <ul>
-    <li><strong>Manager:</strong> <code>User.is_manager</code> is true; can use sales and report views protected by <code>manager_required</code>.</li>
-    <li><strong>Cashier:</strong> can use POS and regular signed-in pages; is not a manager.</li>
-    <li><strong>Staff:</strong> signed-in inventory pages; is not a manager.</li>
+    <li><strong>Manager:</strong> <code>User.is_manager</code> is true; full access, including inventory writes and sales/report views protected by <code>manager_required</code>.</li>
+    <li><strong>Cashier:</strong> full POS (checkout, receipts) and read-only inventory; inventory write actions are blocked by <code>inventory_manager_required</code> and redirected to <code>/pos/</code>.</li>
+    <li><strong>Staff:</strong> read-only inventory and read-only views; inventory write actions are blocked by <code>inventory_manager_required</code> and redirected to <code>/pos/</code>.</li>
     <li><strong>Stock Viewer:</strong> sees only Live Stock and logout in navigation. <code>accounts/middleware.py</code> also redirects direct requests to other view names, so hiding links is not the only security control.</li>
   </ul>
+  <p>Role guards are shared from <code>accounts/decorators.py</code>: <code>manager_required</code> (redirects to the dashboard) protects sales/report views, and <code>inventory_manager_required</code> (redirects to <code>/pos/</code>) protects inventory writes. Direct URL access is always blocked, not just hidden buttons.</p>
   <p>Create users at <code>/admin/</code>. Choosing the Stock Viewer role does not automatically make a user an admin. Admin access is separately controlled by <code>is_staff</code> and permissions.</p>
 
   <h2 id="data">4. Data model and stock rules</h2>
+  <p>Figure 2 shows the schema; the table lists each model and its key fields. Foreign keys (FK) implement the relationships, and most are nullable so history survives when a category, product, or user is removed (<code>SET_NULL</code>) or cascades with its parent (<code>CASCADE</code>).</p>
   <table>
     <thead><tr><th>Model</th><th>Purpose</th><th>Important fields / relationship</th></tr></thead>
     <tbody>
@@ -152,9 +163,15 @@ npm run build:css
       <tr><td><code>Product</code></td><td>Current catalog and stock count.</td><td><code>sku</code>, <code>image</code>, prices, <code>quantity</code>, <code>min_stock_level</code>, <code>is_active</code>.</td></tr>
       <tr><td><code>StockTransaction</code></td><td>Records a stock movement.</td><td>Product, type, quantity, reference, user, timestamp.</td></tr>
       <tr><td><code>Sale</code></td><td>One checkout/receipt.</td><td>Cashier, subtotal, discount, total, tender, change, receipt number.</td></tr>
-      <tr><td><code>SaleItem</code></td><td>Products and quantities within a sale.</td><td>Sale, product, quantity, unit price, line subtotal.</td></tr>
+      <tr><td><code>SaleItem</code></td><td>Products and quantities within a sale.</td><td>Sale, product, quantity, unit price, line subtotal. Tracks <code>returned_quantity</code> / <code>returnable_quantity</code>.</td></tr>
+      <tr><td><code>Return</code></td><td>One refund against a sale.</td><td>Sale, processed-by user, refund amount and method, reason, receipt number.</td></tr>
+      <tr><td><code>ReturnItem</code></td><td>Products and quantities returned within a return.</td><td>Return, sale item, product, quantity, unit price, line subtotal, <code>restock</code> flag.</td></tr>
     </tbody>
   </table>
+  <figure class="diagram">
+    <img src="system-erd.png" alt="Entity relationship diagram: accounts.User relates to inventory.StockTransaction, pos.Sale and pos.Return; inventory.Category relates to Product; Product relates to StockTransaction, SaleItem and ReturnItem; Sale contains SaleItem and Return; Return contains ReturnItem; ReturnItem links back to SaleItem.">
+    <figcaption>Figure 2. Entity relationship diagram across the accounts, inventory, and pos apps (crow’s-foot notation).</figcaption>
+  </figure>
   <h3>The stock invariant</h3>
   <p><code>Product.quantity</code> is the current count displayed to users. A new <code>StockTransaction</code> updates it in <code>StockTransaction.save()</code>; deleting a transaction calls <code>reverse_stock()</code>. A POS sale creates stock-out transactions, so the same stock mechanism updates inventory from checkout.</p>
   <ul>
@@ -296,7 +313,7 @@ venv/bin/python manage.py migrate</code></pre>
       <tr><td>How does checkout update inventory?</td><td>The server validates the submitted cart; <code>record_sale()</code> atomically creates the sale and items and records stock-out transactions. The transaction model applies those movements to Product.quantity.</td></tr>
       <tr><td>Why validate on the server if JavaScript already checks?</td><td>Browser state can be modified or stale. Server checks are authoritative for inventory, discount, and payment.</td></tr>
       <tr><td>What makes the stock page “real time”?</td><td>A Django Channels WebSocket (<code>ws/stock/</code>) pushes updates. The consumer sends a snapshot on connect and the server broadcasts each product change; the HTTP JSON route is only a fallback. This is push, not polling.</td></tr>
-      <tr><td>How do permissions work?</td><td>Authentication decorators require sign-in, manager views use <code>manager_required</code>, and StockViewerAccessMiddleware allows only the stock page/data and logout. Django admin also checks staff permissions.</td></tr>
+      <tr><td>How do permissions work?</td><td>Authentication decorators require sign-in, manager views use <code>manager_required</code>, inventory writes use <code>inventory_manager_required</code> (Cashier/Staff are redirected to <code>/pos/</code>), and StockViewerAccessMiddleware allows only the stock page/data and logout. Django admin also checks staff permissions.</td></tr>
       <tr><td>How are uploaded photos stored?</td><td>The database stores a file path in an ImageField; the image file is stored separately under MEDIA_ROOT. Development URL serving is enabled only in DEBUG.</td></tr>
       <tr><td>How is profit calculated?</td><td>Net sales (gross totals − refunds) minus COGS (each item’s unit cost × quantity). Margin is profit ÷ net sales. The same <code>build_analytics()</code> helper feeds the KPI cards, charts, and CSV export.</td></tr>
       <tr><td>Why are the analytics charts live without polling?</td><td>The existing WebSocket is reused: <code>record_sale()</code>/<code>record_return()</code> broadcast a lightweight event after commit, <code>base.html</code> dispatches a window event, and the page refetches the JSON data endpoint.</td></tr>

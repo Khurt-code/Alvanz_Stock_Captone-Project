@@ -12,7 +12,7 @@ A capstone project implementing a web-based inventory management and Point of Sa
 - **Low-stock alerts** — automatic warning when a product's quantity reaches its minimum stock level.
 - **Reports** — sales report (today / last 7 days / this month), inventory report with stock valuation, and sales history.
 - **Analytics dashboard** — manager-only KPIs (net sales, profit, margin), sales trend, top products, and category breakdown with live-updating Chart.js charts plus CSV export.
-- **Role-based access** — Manager, Cashier, and Staff roles.
+- **Role-based access** — Manager, Cashier, Staff, and Stock Viewer roles; Cashier/Staff get read-only inventory plus POS, while inventory writes stay manager-only.
 - **Django Admin** — full management interface at `/admin/`.
 
 ## Tech Stack
@@ -52,7 +52,7 @@ There is no in-app user-management page. Add user accounts either through Django
 2. Log in at http://127.0.0.1:8000/admin/ (e.g. `admin` / `admin123`)
 3. Go to **Users → Add user**, enter a username and password, then click *Save*
 4. On the next screen set:
-   - **Role** — `Manager`, `Cashier`, or `Staff` (controls access; only Managers see Sales & Reports)
+   - **Role** — `Manager`, `Cashier`, `Staff`, or `Stock Viewer` (controls access; Managers own inventory writes and Sales & Reports, Cashier/Staff get read-only inventory plus POS, Stock Viewer sees only Live Stock)
    - **Staff status** / **Superuser status** — check these if the account should also manage Django Admin
    - Optionally first/last name and email
 
@@ -68,7 +68,7 @@ u.save()
 "
 ```
 
-Available roles: `User.Role.MANAGER`, `User.Role.CASHIER`, `User.Role.STAFF`.
+Available roles: `User.Role.MANAGER`, `User.Role.CASHIER`, `User.Role.STAFF`, `User.Role.STOCK_VIEWER`.
 
 ### Tailwind
 

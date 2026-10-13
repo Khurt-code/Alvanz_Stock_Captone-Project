@@ -7,10 +7,12 @@
     <h1 class="text-2xl font-bold">Low Stock Alerts</h1>
     <p class="text-slate-500 mt-1">Items at or below their minimum stock level</p>
   </div>
+  {% if user.is_manager %}
   <a href="{% url 'stock_transaction_create' %}" class="btn-primary">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
     Restock Now
   </a>
+  {% endif %}
 </div>
 
 {% if products %}
@@ -37,7 +39,7 @@
           <td class="table-cell text-center text-red-600 font-bold">{{ p.quantity }}</td>
           <td class="table-cell text-center">{{ p.min_stock_level }}</td>
           <td class="table-cell text-right font-semibold">{{ p.min_stock_level|add:"0" }}<span class="text-slate-400 text-xs"> needed</span></td>
-          <td class="table-cell text-right"><a href="{% url 'stock_transaction_create' %}?product={{ p.pk }}" class="btn-primary text-xs px-3 py-1.5">Restock</a></td>
+          <td class="table-cell text-right">{% if user.is_manager %}<a href="{% url 'stock_transaction_create' %}?product={{ p.pk }}" class="btn-primary text-xs px-3 py-1.5">Restock</a>{% else %}<span class="text-slate-300">—</span>{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

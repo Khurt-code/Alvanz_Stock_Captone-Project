@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta
 from decimal import Decimal
+import json
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -261,3 +262,37 @@ class AnalyticsTests(TestCase):
 				self.make_sale(qty=1)
 
 		broadcast.assert_called_once_with("sale")
+
+
+# Verifies a cashier keeps full POS access (checkout, receipt) while inventory writes stay manager-only.
+class CashierPosTests(TestCase):
+	def setUp(self):
+		User = get_user_model()
+		self.cashier = User.objects.create_user(
+			username="pos-cashier", password="test-pass", role=User.Role.CASHIER
+		)
+		self.product = Product.objects.create(
+			name="Paint", sku="PNT-1", sell_price=Decimal("100.00"), cost_price=Decimal("60.00"), quantity=5
+		)
+		self.client.force_login(self.cashier)
+
+	def test_cashier_can_open_pos_screen(self):
+		response = self.client.get(reverse("pos_screen"))
+
+		self.assertEqual(response.status_code, 200)
+
+	def test_cashier_can_checkout_and_view_receipt(self):
+		response = self.client.post(
+			reverse("pos_checkout"),
+			data=json.dumps({"items": [{"id": self.product.id, "qty": 2}], "cash": "200", "discount": "0"}),
+			content_type="application/json",
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.json()["success"])
+		sale = Sale.objects.get(pk=response.json()["sale_id"])
+		self.product.refresh_from_db()
+		self.assertEqual(self.product.quantity, 3)
+
+		receipt = self.client.get(reverse("sale_receipt", args=[sale.pk]))
+		self.assertEqual(receipt.status_code, 200)

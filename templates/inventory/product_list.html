@@ -7,12 +7,13 @@
     <h1 class="text-2xl font-bold">Products</h1>
     <p class="text-slate-500 mt-1">{{ products.paginator.count }} active products</p>
   </div>
+  {% if user.is_manager %}
   <a href="{% url 'product_create' %}" class="btn-primary">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
     Add Product
   </a>
+  {% endif %}
 </div>
-
 <form method="get" class="card p-4 mb-6 flex flex-col sm:flex-row gap-3">
   <input type="text" name="q" value="{{ query }}" placeholder="Search by name or SKU..." class="input flex-1">
   <select name="category" class="input sm:w-56">
@@ -60,11 +61,15 @@
             {% endif %}
           </td>
           <td class="table-cell text-right whitespace-nowrap">
+            {% if user.is_manager %}
             <a href="{% url 'product_edit' p.pk %}" class="text-slate-500 hover:text-amber-600 mr-3">Edit</a>
             <form method="post" action="{% url 'product_delete' p.pk %}" class="inline" onsubmit="return confirm('Remove {{ p.name|escapejs }}?')">
               {% csrf_token %}
               <button class="text-red-500 hover:text-red-700">Delete</button>
             </form>
+            {% else %}
+            <a href="{% url 'product_detail' p.pk %}" class="text-slate-500 hover:text-amber-600">View</a>
+            {% endif %}
           </td>
         </tr>
         {% empty %}

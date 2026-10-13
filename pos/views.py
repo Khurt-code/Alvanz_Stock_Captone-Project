@@ -11,26 +11,14 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from functools import wraps
 
+from accounts.decorators import manager_required
 from inventory.models import Product
 
 from .models import Return, Sale, SaleItem, record_return, record_sale
 
 
 # POS handlers join inventory products to checkout, receipts, and manager-only reporting templates.
-def manager_required(view_func):
-    @wraps(view_func)
-    @login_required
-    def _wrapped(request, *args, **kwargs):
-        if not request.user.is_manager:
-            messages.error(request, "You don't have permission to view Sales & Reports.")
-            return redirect("dashboard")
-        return view_func(request, *args, **kwargs)
-
-    return _wrapped
-
-
 @login_required
 def pos_screen(request):
     products = Product.objects.filter(is_active=True).order_by("name")

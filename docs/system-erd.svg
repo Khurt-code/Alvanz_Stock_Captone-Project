@@ -1,0 +1,199 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1560 1160" width="1560" height="1160" font-family="DejaVu Sans, Arial, Helvetica, sans-serif">
+  <defs>
+    <style>
+      .ent { fill:#ffffff; stroke:#334155; stroke-width:1.5; }
+      .ename { font-size:15px; font-weight:700; fill:#ffffff; }
+      .eapp { font-size:10.5px; fill:#ffffffcc; }
+      .fld { font-size:12px; fill:#0f172a; }
+      .ftype { font-size:10.5px; fill:#64748b; }
+      .pk { font-size:9.5px; font-weight:700; fill:#b45309; }
+      .fk { font-size:9.5px; font-weight:700; fill:#0f766e; }
+      .rel { stroke:#334155; stroke-width:1.6; fill:none; }
+      .rellbl { font-size:11px; fill:#475569; font-style:italic; }
+      .lgd { font-size:12px; fill:#334155; }
+      .lgdh { font-size:14px; font-weight:700; fill:#0f172a; }
+    </style>
+    <marker id="one" viewBox="0 0 12 12" refX="6" refY="6" markerWidth="11" markerHeight="11" orient="auto">
+      <line x1="6" y1="1.5" x2="6" y2="10.5" stroke="#334155" stroke-width="2"/>
+    </marker>
+    <marker id="many" viewBox="0 0 14 12" refX="14" refY="6" markerWidth="13" markerHeight="12" orient="auto">
+      <path d="M14,1 L2,6 L14,11" fill="none" stroke="#334155" stroke-width="2"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1560" height="1160" fill="#ffffff"/>
+
+  <text x="40" y="38" font-size="27" font-weight="700" fill="#0f172a">AlvanzStock — Entity Relationship Diagram</text>
+  <text x="40" y="60" font-size="14" fill="#64748b">accounts · inventory · pos (crow's-foot notation; PK = primary key, FK = foreign key)</text>
+
+  <!-- ===================== accounts.User ===================== -->
+  <g>
+    <rect class="ent" x="620" y="70" width="340" height="262" rx="10"/>
+    <path d="M620,80 a10,10 0 0 1 10,-10 h320 a10,10 0 0 1 10,10 v24 h-340 z" fill="#1e40af"/>
+    <text class="ename" x="636" y="94">User</text>
+    <text class="eapp" x="944" y="94" text-anchor="end">accounts</text>
+    <text class="pk" x="630" y="124">PK</text><text class="fld" x="660" y="124">id</text><text class="ftype" x="948" y="124" text-anchor="end">AutoField</text>
+    <text class="fld" x="660" y="148">username</text><text class="ftype" x="948" y="148" text-anchor="end">CharField</text>
+    <text class="fld" x="660" y="172">password</text><text class="ftype" x="948" y="172" text-anchor="end">CharField</text>
+    <text class="fld" x="660" y="196">first_name</text><text class="ftype" x="948" y="196" text-anchor="end">CharField</text>
+    <text class="fld" x="660" y="220">last_name</text><text class="ftype" x="948" y="220" text-anchor="end">CharField</text>
+    <text class="fld" x="660" y="244">email</text><text class="ftype" x="948" y="244" text-anchor="end">EmailField</text>
+    <text class="fld" x="660" y="268">role</text><text class="ftype" x="948" y="268" text-anchor="end">choices</text>
+    <text class="fld" x="660" y="292">is_active</text><text class="ftype" x="948" y="292" text-anchor="end">Boolean</text>
+    <text class="fld" x="660" y="316">is_staff</text><text class="ftype" x="948" y="316" text-anchor="end">Boolean</text>
+  </g>
+
+  <!-- ===================== inventory.Category ===================== -->
+  <g>
+    <rect class="ent" x="40" y="130" width="320" height="118" rx="10"/>
+    <path d="M40,140 a10,10 0 0 1 10,-10 h300 a10,10 0 0 1 10,10 v24 h-320 z" fill="#166534"/>
+    <text class="ename" x="56" y="154">Category</text>
+    <text class="eapp" x="344" y="154" text-anchor="end">inventory</text>
+    <text class="pk" x="50" y="184">PK</text><text class="fld" x="80" y="184">id</text><text class="ftype" x="348" y="184" text-anchor="end">AutoField</text>
+    <text class="fld" x="80" y="208">name</text><text class="ftype" x="348" y="208" text-anchor="end">CharField · unique</text>
+    <text class="fld" x="80" y="232">description</text><text class="ftype" x="348" y="232" text-anchor="end">TextField</text>
+  </g>
+
+  <!-- ===================== inventory.Product ===================== -->
+  <g>
+    <rect class="ent" x="40" y="310" width="320" height="334" rx="10"/>
+    <path d="M40,320 a10,10 0 0 1 10,-10 h300 a10,10 0 0 1 10,10 v24 h-320 z" fill="#166534"/>
+    <text class="ename" x="56" y="334">Product</text>
+    <text class="eapp" x="344" y="334" text-anchor="end">inventory</text>
+    <text class="pk" x="50" y="364">PK</text><text class="fld" x="80" y="364">id</text><text class="ftype" x="348" y="364" text-anchor="end">AutoField</text>
+    <text class="fld" x="80" y="388">name</text><text class="ftype" x="348" y="388" text-anchor="end">CharField</text>
+    <text class="fld" x="80" y="412">sku</text><text class="ftype" x="348" y="412" text-anchor="end">CharField · unique</text>
+    <text class="fk" x="50" y="436">FK</text><text class="fld" x="80" y="436">category_id</text><text class="ftype" x="348" y="436" text-anchor="end">→ Category</text>
+    <text class="fld" x="80" y="460">image</text><text class="ftype" x="348" y="460" text-anchor="end">ImageField</text>
+    <text class="fld" x="80" y="484">unit</text><text class="ftype" x="348" y="484" text-anchor="end">CharField</text>
+    <text class="fld" x="80" y="508">cost_price</text><text class="ftype" x="348" y="508" text-anchor="end">Decimal</text>
+    <text class="fld" x="80" y="532">sell_price</text><text class="ftype" x="348" y="532" text-anchor="end">Decimal</text>
+    <text class="fld" x="80" y="556">quantity</text><text class="ftype" x="348" y="556" text-anchor="end">PositiveInt</text>
+    <text class="fld" x="80" y="580">min_stock_level</text><text class="ftype" x="348" y="580" text-anchor="end">PositiveInt</text>
+    <text class="fld" x="80" y="604">is_active</text><text class="ftype" x="348" y="604" text-anchor="end">Boolean</text>
+    <text class="fld" x="80" y="628">created_at / updated_at</text><text class="ftype" x="348" y="628" text-anchor="end">DateTime</text>
+  </g>
+
+  <!-- ===================== inventory.StockTransaction ===================== -->
+  <g>
+    <rect class="ent" x="40" y="700" width="320" height="238" rx="10"/>
+    <path d="M40,710 a10,10 0 0 1 10,-10 h300 a10,10 0 0 1 10,10 v24 h-320 z" fill="#166534"/>
+    <text class="ename" x="56" y="724">StockTransaction</text>
+    <text class="eapp" x="344" y="724" text-anchor="end">inventory</text>
+    <text class="pk" x="50" y="754">PK</text><text class="fld" x="80" y="754">id</text><text class="ftype" x="348" y="754" text-anchor="end">AutoField</text>
+    <text class="fk" x="50" y="778">FK</text><text class="fld" x="80" y="778">product_id</text><text class="ftype" x="348" y="778" text-anchor="end">→ Product</text>
+    <text class="fld" x="80" y="802">transaction_type</text><text class="ftype" x="348" y="802" text-anchor="end">IN / OUT / ADJ</text>
+    <text class="fld" x="80" y="826">quantity</text><text class="ftype" x="348" y="826" text-anchor="end">PositiveInt</text>
+    <text class="fld" x="80" y="850">reference</text><text class="ftype" x="348" y="850" text-anchor="end">CharField</text>
+    <text class="fld" x="80" y="874">notes</text><text class="ftype" x="348" y="874" text-anchor="end">TextField</text>
+    <text class="fk" x="50" y="898">FK</text><text class="fld" x="80" y="898">user_id</text><text class="ftype" x="348" y="898" text-anchor="end">→ User</text>
+    <text class="fld" x="80" y="922">created_at</text><text class="ftype" x="348" y="922" text-anchor="end">DateTime</text>
+  </g>
+
+  <!-- ===================== pos.Sale ===================== -->
+  <g>
+    <rect class="ent" x="1160" y="130" width="320" height="262" rx="10"/>
+    <path d="M1160,140 a10,10 0 0 1 10,-10 h300 a10,10 0 0 1 10,10 v24 h-320 z" fill="#9a3412"/>
+    <text class="ename" x="1176" y="154">Sale</text>
+    <text class="eapp" x="1464" y="154" text-anchor="end">pos</text>
+    <text class="pk" x="1170" y="184">PK</text><text class="fld" x="1200" y="184">id</text><text class="ftype" x="1468" y="184" text-anchor="end">AutoField</text>
+    <text class="fld" x="1200" y="208">receipt_no</text><text class="ftype" x="1468" y="208" text-anchor="end">CharField · unique</text>
+    <text class="fld" x="1200" y="232">subtotal</text><text class="ftype" x="1468" y="232" text-anchor="end">Decimal</text>
+    <text class="fld" x="1200" y="256">discount</text><text class="ftype" x="1468" y="256" text-anchor="end">Decimal</text>
+    <text class="fld" x="1200" y="280">total</text><text class="ftype" x="1468" y="280" text-anchor="end">Decimal</text>
+    <text class="fld" x="1200" y="304">cash_tendered</text><text class="ftype" x="1468" y="304" text-anchor="end">Decimal</text>
+    <text class="fld" x="1200" y="328">change</text><text class="ftype" x="1468" y="328" text-anchor="end">Decimal</text>
+    <text class="fk" x="1170" y="352">FK</text><text class="fld" x="1200" y="352">cashier_id</text><text class="ftype" x="1468" y="352" text-anchor="end">→ User</text>
+    <text class="fld" x="1200" y="376">created_at</text><text class="ftype" x="1468" y="376" text-anchor="end">DateTime</text>
+  </g>
+
+  <!-- ===================== pos.SaleItem ===================== -->
+  <g>
+    <rect class="ent" x="620" y="450" width="340" height="190" rx="10"/>
+    <path d="M620,460 a10,10 0 0 1 10,-10 h320 a10,10 0 0 1 10,10 v24 h-340 z" fill="#9a3412"/>
+    <text class="ename" x="636" y="474">SaleItem</text>
+    <text class="eapp" x="944" y="474" text-anchor="end">pos</text>
+    <text class="pk" x="630" y="504">PK</text><text class="fld" x="660" y="504">id</text><text class="ftype" x="948" y="504" text-anchor="end">AutoField</text>
+    <text class="fk" x="630" y="528">FK</text><text class="fld" x="660" y="528">sale_id</text><text class="ftype" x="948" y="528" text-anchor="end">→ Sale</text>
+    <text class="fk" x="630" y="552">FK</text><text class="fld" x="660" y="552">product_id</text><text class="ftype" x="948" y="552" text-anchor="end">→ Product</text>
+    <text class="fld" x="660" y="576">quantity</text><text class="ftype" x="948" y="576" text-anchor="end">PositiveInt</text>
+    <text class="fld" x="660" y="600">unit_price</text><text class="ftype" x="948" y="600" text-anchor="end">Decimal</text>
+    <text class="fld" x="660" y="624">subtotal</text><text class="ftype" x="948" y="624" text-anchor="end">Decimal</text>
+  </g>
+
+  <!-- ===================== pos.Return ===================== -->
+  <g>
+    <rect class="ent" x="1160" y="640" width="320" height="238" rx="10"/>
+    <path d="M1160,650 a10,10 0 0 1 10,-10 h300 a10,10 0 0 1 10,10 v24 h-320 z" fill="#9a3412"/>
+    <text class="ename" x="1176" y="664">Return</text>
+    <text class="eapp" x="1464" y="664" text-anchor="end">pos</text>
+    <text class="pk" x="1170" y="694">PK</text><text class="fld" x="1200" y="694">id</text><text class="ftype" x="1468" y="694" text-anchor="end">AutoField</text>
+    <text class="fld" x="1200" y="718">receipt_no</text><text class="ftype" x="1468" y="718" text-anchor="end">CharField · unique</text>
+    <text class="fk" x="1170" y="742">FK</text><text class="fld" x="1200" y="742">sale_id</text><text class="ftype" x="1468" y="742" text-anchor="end">→ Sale</text>
+    <text class="fld" x="1200" y="766">reason</text><text class="ftype" x="1468" y="766" text-anchor="end">TextField</text>
+    <text class="fld" x="1200" y="790">refund_amount</text><text class="ftype" x="1468" y="790" text-anchor="end">Decimal</text>
+    <text class="fld" x="1200" y="814">refund_method</text><text class="ftype" x="1468" y="814" text-anchor="end">cash / credit</text>
+    <text class="fk" x="1170" y="838">FK</text><text class="fld" x="1200" y="838">processed_by_id</text><text class="ftype" x="1468" y="838" text-anchor="end">→ User</text>
+    <text class="fld" x="1200" y="862">created_at</text><text class="ftype" x="1468" y="862" text-anchor="end">DateTime</text>
+  </g>
+
+  <!-- ===================== pos.ReturnItem ===================== -->
+  <g>
+    <rect class="ent" x="620" y="760" width="340" height="238" rx="10"/>
+    <path d="M620,770 a10,10 0 0 1 10,-10 h320 a10,10 0 0 1 10,10 v24 h-340 z" fill="#9a3412"/>
+    <text class="ename" x="636" y="784">ReturnItem</text>
+    <text class="eapp" x="944" y="784" text-anchor="end">pos</text>
+    <text class="pk" x="630" y="814">PK</text><text class="fld" x="660" y="814">id</text><text class="ftype" x="948" y="814" text-anchor="end">AutoField</text>
+    <text class="fk" x="630" y="838">FK</text><text class="fld" x="660" y="838">return_ref_id</text><text class="ftype" x="948" y="838" text-anchor="end">→ Return</text>
+    <text class="fk" x="630" y="862">FK</text><text class="fld" x="660" y="862">sale_item_id</text><text class="ftype" x="948" y="862" text-anchor="end">→ SaleItem</text>
+    <text class="fk" x="630" y="886">FK</text><text class="fld" x="660" y="886">product_id</text><text class="ftype" x="948" y="886" text-anchor="end">→ Product</text>
+    <text class="fld" x="660" y="910">quantity</text><text class="ftype" x="948" y="910" text-anchor="end">PositiveInt</text>
+    <text class="fld" x="660" y="934">unit_price</text><text class="ftype" x="948" y="934" text-anchor="end">Decimal</text>
+    <text class="fld" x="660" y="958">subtotal</text><text class="ftype" x="948" y="958" text-anchor="end">Decimal</text>
+    <text class="fld" x="660" y="982">restock</text><text class="ftype" x="948" y="982" text-anchor="end">Boolean</text>
+  </g>
+
+  <!-- ===================== relationships ===================== -->
+  <path class="rel" d="M200,248 L200,310" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="212" y="285">categorizes</text>
+
+  <path class="rel" d="M200,644 L200,700" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="212" y="678">moves stock</text>
+
+  <path class="rel" d="M620,240 L520,240 L520,668 L280,668 L280,700" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="326" y="662">records</text>
+
+  <path class="rel" d="M960,200 L1160,200" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="1060" y="192" text-anchor="middle">cashier</text>
+
+  <path class="rel" d="M960,270 L1040,270 L1040,740 L1160,740" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="1050" y="524">processed by</text>
+
+  <path class="rel" d="M1160,350 L1080,350 L1080,510 L960,510" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="1088" y="430">contains</text>
+
+  <path class="rel" d="M360,500 L620,500" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="490" y="492" text-anchor="middle">sold as</text>
+
+  <path class="rel" d="M1300,392 L1300,640" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="1310" y="522">refunded by</text>
+
+  <path class="rel" d="M1300,878 L1300,905 L960,905" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="1120" y="898" text-anchor="middle">contains</text>
+
+  <path class="rel" d="M790,640 L790,760" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="800" y="706">returned as</text>
+
+  <path class="rel" d="M360,590 L490,590 L490,850 L620,850" marker-start="url(#one)" marker-end="url(#many)"/>
+  <text class="rellbl" x="498" y="722">restocked as</text>
+
+  <!-- ===================== legend ===================== -->
+  <rect class="ent" x="40" y="970" width="520" height="150" rx="10"/>
+  <text class="lgdh" x="60" y="998">Legend</text>
+  <text class="pk" x="60" y="1028">PK</text><text class="lgd" x="110" y="1028">primary key</text>
+  <text class="fk" x="60" y="1054">FK</text><text class="lgd" x="110" y="1054">foreign key (→ referenced entity)</text>
+  <line x1="60" y1="1086" x2="150" y2="1086" class="rel" marker-start="url(#one)"/>
+  <text class="lgd" x="164" y="1090">one  (exactly one parent)</text>
+  <line x1="60" y1="1110" x2="150" y2="1110" class="rel" marker-end="url(#many)"/>
+  <text class="lgd" x="164" y="1114">many  (zero or more children)</text>
+</svg>

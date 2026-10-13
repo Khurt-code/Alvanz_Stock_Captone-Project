@@ -10,14 +10,15 @@
 |---|---|---|
 | `/` | `inventory/views.py` → `dashboard` | `templates/dashboard.html` |
 | `/products/` | `inventory/views.py` → `product_list` | `inventory/product_list.html` |
-| `/products/new/` | `inventory/views.py` → `product_create` | `inventory/product_form.html` |
+| `/products/new/` | `inventory/views.py` → `product_create` (manager-only) | `inventory/product_form.html` |
 | `/products/<id>/` | `inventory/views.py` → `product_detail` | `inventory/product_detail.html` |
-| `/products/<id>/edit/` | `inventory/views.py` → `product_edit` | `inventory/product_form.html` |
-| `/products/<id>/delete/` | `inventory/views.py` → `product_delete` | redirects |
+| `/products/<id>/edit/` | `inventory/views.py` → `product_edit` (manager-only) | `inventory/product_form.html` |
+| `/products/<id>/delete/` | `inventory/views.py` → `product_delete` (manager-only) | redirects |
 | `/categories/` | `inventory/views.py` → `category_list` | `inventory/category_list.html` |
-| `/categories/new/` | `inventory/views.py` → `category_create` | `inventory/category_form.html` |
-| `/categories/<id>/delete/` | `inventory/views.py` → `category_delete` | redirects |
-| `/stock/new/` | `inventory/views.py` → `stock_transaction_create` | `inventory/stock_form.html` |
+| `/categories/new/` | `inventory/views.py` → `category_create` (manager-only) | `inventory/category_form.html` |
+| `/categories/<id>/delete/` | `inventory/views.py` → `category_delete` (manager-only) | redirects |
+| `/stock/new/` | `inventory/views.py` → `stock_transaction_create` (manager-only) | `inventory/stock_form.html` |
+| `/stock/<id>/delete/` | `inventory/views.py` → `stock_transaction_delete` (manager-only) | redirects |
 | `/stock/` | `inventory/views.py` → `stock_transaction_list` | `inventory/stock_list.html` |
 | `/low-stock/` | `inventory/views.py` → `low_stock` | `inventory/low_stock.html` |
 | `/real-time-stock/` | `inventory/views.py` → `real_time_stock` | `inventory/real_time_stock.html` |
@@ -26,22 +27,24 @@
 | `/pos/` | `pos/views.py` → `pos_screen` | `pos/pos_screen.html` |
 | `/pos/checkout/` | `pos/views.py` → `pos_checkout` (JSON API) | — |
 | `/receipt/<id>/` | `pos/views.py` → `sale_receipt` | `pos/receipt.html` |
-| `/sales/` | `pos/views.py` → `sales_list` | `pos/sales_list.html` |
-| `/reports/sales/` | `pos/views.py` → `sales_report` | `reports/sales_report.html` |
-| `/reports/inventory/` | `pos/views.py` → `inventory_report` | `reports/inventory_report.html` |
-| `/reports/analytics/` | `pos/views.py` → `analytics_report` | `reports/analytics_report.html` |
-| `/reports/analytics/data/` | `pos/views.py` → `analytics_data` (JSON) | — |
-| `/reports/analytics/export/` | `pos/views.py` → `analytics_export` (CSV) | — |
+| `/sales/` | `pos/views.py` → `sales_list` (manager-only) | `pos/sales_list.html` |
+| `/reports/sales/` | `pos/views.py` → `sales_report` (manager-only) | `reports/sales_report.html` |
+| `/reports/inventory/` | `pos/views.py` → `inventory_report` (manager-only) | `reports/inventory_report.html` |
+| `/reports/analytics/` | `pos/views.py` → `analytics_report` (manager-only) | `reports/analytics_report.html` |
+| `/reports/analytics/data/` | `pos/views.py` → `analytics_data` (JSON, manager-only) | — |
+| `/reports/analytics/export/` | `pos/views.py` → `analytics_export` (CSV, manager-only) | — |
 | `/accounts/login/` | `accounts/views.py` → `AlvanzLoginView` | `registration/login.html` |
 | `/admin/` | Django admin | — |
 
 Routing: `alvanzstock/urls.py` → `inventory/urls.py`, `pos/urls.py`, `accounts/urls.py`.
 
+Permission guards live in `accounts/decorators.py`: `manager_required` (redirects non-managers to the dashboard) protects Sales & Reports, and `inventory_manager_required` (redirects Cashier/Staff to `/pos/`) protects inventory writes. `accounts/middleware.py` restricts Stock Viewer to the live-stock page/data and logout.
+
 ## Data models → app
 
 | Model | File | Purpose |
 |---|---|---|
-| `User` (custom, has `role`) | `accounts/models.py` | Manager / Cashier / Staff |
+| `User` (custom, has `role`) | `accounts/models.py` | Manager / Cashier / Staff / Stock Viewer |
 | `Category` | `inventory/models.py` | Product grouping |
 | `Product` (`quantity`, `min_stock_level`) | `inventory/models.py` | Stock + low-stock threshold |
 | `StockTransaction` (IN / OUT / ADJ) | `inventory/models.py` | Moves stock, auto-updates `Product.quantity` |

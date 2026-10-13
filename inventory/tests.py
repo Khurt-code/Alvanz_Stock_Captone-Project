@@ -18,7 +18,10 @@ from .models import Category, Product, StockTransaction
 # Exercises inventory routes and checks product-image uploads render through the POS product data.
 class RealTimeStockTests(TestCase):
 	def setUp(self):
-		user = get_user_model().objects.create_user(username="stock-viewer", password="test-pass")
+		User = get_user_model()
+		user = User.objects.create_user(
+			username="stock-manager", password="test-pass", role=User.Role.MANAGER
+		)
 		self.client.force_login(user)
 		category = Category.objects.create(name="Tools")
 		self.product = Product.objects.create(
@@ -60,7 +63,10 @@ class RealTimeStockTests(TestCase):
 
 class ProductImageUploadTests(TestCase):
 	def setUp(self):
-		user = get_user_model().objects.create_user(username="image-uploader", password="test-pass")
+		User = get_user_model()
+		user = User.objects.create_user(
+			username="image-uploader", password="test-pass", role=User.Role.MANAGER
+		)
 		self.client.force_login(user)
 		media_directory = TemporaryDirectory()
 		self.addCleanup(media_directory.cleanup)
@@ -166,3 +172,95 @@ class StockBroadcastTests(TestCase):
 
 		broadcast.assert_called_once()
 		self.assertEqual(broadcast.call_args[0][0].quantity, 5)
+
+
+# Verifies cashier/staff can read inventory but every write action is blocked and redirected to POS.
+class InventoryPermissionTests(TestCase):
+	def setUp(self):
+		User = get_user_model()
+		self.manager = User.objects.create_user(
+			username="inv-manager", password="test-pass", role=User.Role.MANAGER
+		)
+		self.cashier = User.objects.create_user(
+			username="inv-cashier", password="test-pass", role=User.Role.CASHIER
+		)
+		self.staff = User.objects.create_user(
+			username="inv-staff", password="test-pass", role=User.Role.STAFF
+		)
+		self.category = Category.objects.create(name="Tools")
+		self.product = Product.objects.create(
+			name="Hammer", sku="HAM-PERM", category=self.category, quantity=7, min_stock_level=3
+		)
+		self.transaction = StockTransaction.objects.create(
+			product=self.product,
+			transaction_type=StockTransaction.Type.STOCK_IN,
+			quantity=7,
+			user=self.manager,
+		)
+		self.product.refresh_from_db()
+		self.baseline_quantity = self.product.quantity
+
+	def write_targets(self):
+		return [
+			("get", reverse("product_create")),
+			("get", reverse("product_edit", args=[self.product.pk])),
+			("post", reverse("product_delete", args=[self.product.pk])),
+			("get", reverse("category_create")),
+			("post", reverse("category_delete", args=[self.category.pk])),
+			("get", reverse("stock_transaction_create")),
+			("post", reverse("stock_transaction_delete", args=[self.transaction.pk])),
+		]
+
+	def test_restricted_roles_are_redirected_from_inventory_writes(self):
+		for user in (self.cashier, self.staff):
+			self.client.force_login(user)
+			for method, url in self.write_targets():
+				response = getattr(self.client, method)(url)
+				self.assertRedirects(response, reverse("pos_screen"), msg_prefix=f"{user.username} {url}")
+
+		self.product.refresh_from_db()
+		self.assertEqual(self.product.quantity, self.baseline_quantity)
+		self.assertEqual(Product.objects.count(), 1)
+		self.assertEqual(Category.objects.count(), 1)
+		self.assertEqual(StockTransaction.objects.count(), 1)
+
+	def test_restricted_roles_can_read_inventory_pages(self):
+		read_urls = [
+			reverse("product_list"),
+			reverse("product_detail", args=[self.product.pk]),
+			reverse("category_list"),
+			reverse("stock_transaction_list"),
+			reverse("low_stock"),
+		]
+		for user in (self.cashier, self.staff):
+			self.client.force_login(user)
+			for url in read_urls:
+				self.assertEqual(self.client.get(url).status_code, 200, msg=url)
+
+	def test_cashier_product_list_hides_write_controls(self):
+		self.client.force_login(self.cashier)
+
+		response = self.client.get(reverse("product_list"))
+
+		self.assertNotContains(response, "Add Product")
+		self.assertNotContains(response, "Delete")
+		self.assertContains(response, "View")
+
+	def test_manager_can_still_use_inventory_writes(self):
+		self.client.force_login(self.manager)
+
+		response = self.client.post(
+			reverse("product_create"),
+			{
+				"name": "Wrench",
+				"sku": "WRN-1",
+				"unit": "pcs",
+				"cost_price": "5.00",
+				"sell_price": "9.00",
+				"min_stock_level": "1",
+				"is_active": "on",
+			},
+		)
+
+		self.assertRedirects(response, reverse("product_list"))
+		self.assertTrue(Product.objects.filter(sku="WRN-1").exists())

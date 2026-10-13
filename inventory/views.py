@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from accounts.decorators import inventory_manager_required
 from pos.models import Sale
 
 from .forms import CategoryForm, ProductForm, StockTransactionForm
@@ -59,7 +60,7 @@ def product_list(request):
     return render(request, "inventory/product_list.html", context)
 
 
-@login_required
+@inventory_manager_required
 def product_create(request):
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
@@ -72,7 +73,7 @@ def product_create(request):
     return render(request, "inventory/product_form.html", {"form": form, "title": "Add Product"})
 
 
-@login_required
+@inventory_manager_required
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == "POST":
@@ -86,7 +87,7 @@ def product_edit(request, pk):
     return render(request, "inventory/product_form.html", {"form": form, "product": product, "title": "Edit Product"})
 
 
-@login_required
+@inventory_manager_required
 @require_POST
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -109,7 +110,7 @@ def category_list(request):
     return render(request, "inventory/category_list.html", {"categories": categories})
 
 
-@login_required
+@inventory_manager_required
 def category_create(request):
     if request.method == "POST":
         form = CategoryForm(request.POST)
@@ -122,7 +123,7 @@ def category_create(request):
     return render(request, "inventory/category_form.html", {"form": form, "title": "Add Category"})
 
 
-@login_required
+@inventory_manager_required
 @require_POST
 def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
@@ -131,7 +132,7 @@ def category_delete(request, pk):
     return redirect("category_list")
 
 
-@login_required
+@inventory_manager_required
 def stock_transaction_create(request):
     if request.method == "POST":
         form = StockTransactionForm(request.POST)
@@ -159,7 +160,7 @@ def stock_transaction_list(request):
     return render(request, "inventory/stock_list.html", {"transactions": page, "ttype": ttype})
 
 
-@login_required
+@inventory_manager_required
 @require_POST
 def stock_transaction_delete(request, pk):
     txn = get_object_or_404(StockTransaction, pk=pk)
